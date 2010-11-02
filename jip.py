@@ -152,6 +152,10 @@ def _get_runtime_dependencies(pom_string):
     ## we use this dirty method to remove namesapce attribute so that elementtree will use default empty namespace
     pom_string = re.sub(r"<project(.|\s)*?>", '<project>', pom_string, 1)
     eletree = ElementTree.fromstring(pom_string)
+
+    #TODO parsing parent pom for dependencyManagement (allow this method to download another pom from current repository)
+    #TODO parsing in-pom properties
+    #TODO resolve placeholders in pom (properties and pom references)
     
     dependency_management_version_dict = {}
 
@@ -189,6 +193,7 @@ def _create_repos(name, uri, repos_type):
     if repos_type == 'remote':
         return MavenHttpRemoteRepos(name, uri)
 
+## TODO allow custom repository configuration from a config file
 MAVEN_REPOS = map(lambda x: _create_repos(*x), [MAVEN_LOCAL_REPOS, MAVEN_PUBLIC_REPOS])
 
 def install(group, artifact, version):
@@ -246,11 +251,14 @@ def main():
     logger.debug("sys args %s" % sys.argv)
     args = sys.argv[1:] 
     cmd, values = parse_cmd(args)
+    ## TODO a command dict contains data structure: (command_name, command function )
     if cmd == 'install':
         #group, artifact, version = values.split(':')
         install(*values[0].split(':'))
     elif cmd == 'clean':
         clean()
+## TODO another resolve task, allow jip to resovle dependencies from a pom file.
+## TODO a paste template to generate a basic structure of jython project (contains a pom file)
 
 if __name__ == "__main__":
     main()
