@@ -29,13 +29,13 @@ setup(
     py_modules=['jip'],
     platform="Linux",
     long_description="""
-    Due to the complexity of traditional Java dependency management tool(ivy/maven), I created jip for simple and easy, in a python way. Use jip, you can download and install jars from maven central repositories, just like the way of well known python package management tool, pip.
+    Due to the complexity of traditional Java dependency management tool(ivy/maven), I created jip for simple and easy, in a pythonic way. Use jip, you can download and install jars from maven central repositories, just like the way of well known python package management tool, pip.
 
 The typical usage of jip is:
 jip install [groupId]:[artifactId]:[version]
-Currently, jip must be used with virtualenv, this is also a best practice for you to create and manage portable environments of python.
+Currently, jip must be used within virtualenv, this is also a best practice for you to create and manage portable environments of python.
 
-jip is under active development, and do not have a stable release currently.
+jip is under active development, and does not have a stable release currently.
     """,
     classifiers=['Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
