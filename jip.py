@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/jython
 # Copyright (C) 2011 Sun Ning<classicning@gmail.com>
 
 # This program is free software: you can redistribute it and/or modify
@@ -20,6 +20,7 @@ import sys
 import shutil
 import urllib2
 import logging
+import re
 from xml.etree import ElementTree
 from string import Template
 
@@ -27,12 +28,17 @@ __author__ = 'Sun Ning <classicning@gmail.com>'
 __version__ = '0.1dev'
 __license__ = 'GPL'
 
-JYTHON_HOME = os.environ('JYTHON_HOME')
+JYTHON_HOME = os.environ['VIRTUAL_ENV']
 DEFAULT_JAVA_LIB_PATH = JYTHON_HOME+'/javalib'
-MAVEN_LOCAL_REPOS = ('local', os.environ['HOME']+'/.m2/repository', 'file')
+
+if not os.path.exists(DEFAULT_JAVA_LIB_PATH):
+    os.mkdir(DEFAULT_JAVA_LIB_PATH)
+
+MAVEN_LOCAL_REPOS = ('local', os.environ['HOME']+'/.m2/repository', 'local')
 MAVEN_PUBLIC_REPOS = ('public', "http://repo1.maven.org/maven2/", 'remote')
 
-logger = logging.logger()
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger('jip')
 
 class Artifact(object):
     def __init__(self, group, artifact, version):
@@ -43,7 +49,7 @@ class Artifact(object):
     def to_jip_name(self, pattern="$artifact-$version.$ext", ext="jar"):
         template = Template(pattern)
         filename = template.substitute({'group':self.group, 'artifact':self.artifact, 
-                'version': self.version, 'ext': self.ext})
+                'version': self.version, 'ext': ext})
         return filename
 
     def to_maven_name(self, ext):
@@ -79,7 +85,7 @@ class MavenFileSystemRepos(MavenRepos):
     def __init__(self, name, uri):
         MavenRepos.__init__(self, name, uri)
 
-    def get_artifact_uri(self, artifact, ext)
+    def get_artifact_uri(self, artifact, ext):
         maven_name = artifact.to_maven_name(ext)
         maven_file_path = self.uri + maven_name
         return maven_file_path
@@ -90,13 +96,16 @@ class MavenFileSystemRepos(MavenRepos):
         logger.info("%s" % maven_file_path)
         if os.path.exsits(maven_file_path):
             local_jip_path = local_path+"/"+artifact.to_jip_name()
+            logger.info("Copying file %s" % maven_file_path)
             shutil.copy(maven_file_path, local_jip_path)
+            logger.info("Copy file to %s completed" % local_jip_path)
         else:
             raise IOError('File not found:' + maven_file_path)
 
     def download_pom(self, artifact):
         maven_file_path = self.get_artifact_uri(artifact, 'pom')
-        if os.path.exsits(maven_file_path):
+        if os.path.exists(maven_file_path):
+            logger.info('Opening pom file %s'% maven_file_path)
             pom_file = open(maven_file_path, 'r')
             data =  pom_file.read()
             pom_file.close()
@@ -110,38 +119,44 @@ class MavenHttpRemoteRepos(MavenRepos):
 
     def download_jar(self, artifact, local_path=DEFAULT_JAVA_LIB_PATH):
         maven_path = self.get_artifact_uri(artifact, 'jar')
+        logger.info('Downloading jar from %s' % maven_path)
         f = urllib2.urlopen(maven_path)
-        data =  f.open()
+        data =  f.read()
         f.close()
 
         local_jip_path = local_path+"/"+artifact.to_jip_name()
         local_f = open(local_jip_path, 'w')
         local_f.write(data)
         local_f.close()
+        logger.info('Jar download completed to %s' % maven_path)
 
     def download_pom(self, artifact):
         maven_path = self.get_artifact_uri(artifact, 'pom')
         try:
+            logger.info('Opening pom file %s'% maven_path)
             f = urllib2.urlopen(maven_path)
-            data =  f.open()
+            data =  f.read()
             f.close()
             return data
         except urllib2.HTTPError:
+            logger.info('Pom file not found at %s'% maven_path)
             return None
 
-    def get_artifact_uri(self, artifact, ext)
+    def get_artifact_uri(self, artifact, ext):
         maven_name = artifact.to_maven_name(ext)
         maven_path = self.uri + maven_name
         return maven_path
 
 
 def _get_runtime_dependencies(pom_string):
+    ## we use this dirty method to remove namesapce attribute so that elementtree will use default empty namespace
+    pom_string = re.sub(r"<project(.|\s)*?>", '<project>', pom_string, 1)
     eletree = ElementTree.fromstring(pom_string)
     
     dependency_management_version_dict = {}
 
-    dependencyManagement = eletree.findall("dependencyManagement/dependencies/dependency")
-    for dependency in dependencies:
+    dependency_management_dependencies = eletree.findall("dependencyManagement/dependencies/dependency")
+    for dependency in dependency_management_dependencies:
         group_id = dependency.findtext("groupId")
         artifact_id = dependency.findtext("artifactId")
         version = dependency.findtext("version")
@@ -150,19 +165,22 @@ def _get_runtime_dependencies(pom_string):
 
     runtime_dependencies = []
     dependencies = eletree.findall("dependencies/dependency")
+    logger.debug('Find dependencies declare: %s'% dependencies)
     for dependency in dependencies:
         group_id = dependency.findtext("groupId")
         artifact_id = dependency.findtext("artifactId")
         version = dependency.findtext("version")
-        scope = dependency.findtext("scope")
-        
+        scope = dependency.findtext("scope") or ''
+        optional = dependency.findtext("optional") or ''
+
         # runtime dependency
-        if scope is None or scope == 'compile' or scope == 'runtime':
+        if (scope == '' or scope == 'compile' or scope == 'runtime') and (optional == '' or optional == 'false'):
             if version is None:
                 version = dependency_management_version_dict[(group_id, artifact_id)]
             artifact = Artifact(group_id, artifact_id, version)
             runtime_dependencies.append(artifact)
 
+    logger.debug('Find dependencies: %s'% runtime_dependencies)
     return runtime_dependencies
 
 def _create_repos(name, uri, repos_type):
@@ -188,8 +206,6 @@ def install(group, artifact, version):
 
     while len(dependency_set) > 0:
         artifact = dependency_set.pop()
-        if artifact.to_jip_name() in ready_set:
-            continue
 
         if artifact in installed_set:
             continue
@@ -201,8 +217,9 @@ def install(group, artifact, version):
 
             ## find the artifact
             if pom is not None:
-                repos.download_jar(artifact)
-                install_set.add(artifact)
+                if not artifact.to_jip_name() in ready_set:
+                    repos.download_jar(artifact)
+                    installed_set.add(artifact)
                 found = True
 
                 more_dependencies = _get_runtime_dependencies(pom)
@@ -213,20 +230,27 @@ def install(group, artifact, version):
             logger.error("Artifact not found in repositories: %s", artifact)
             sys.exit(1)
 
-def parse_cmd(args):
-    if len(args > 0):
-        cmd = args[0]
-        values = args[1:]
+def clean():
+    logger.info("remove java libs in %s" % DEFAULT_JAVA_LIB_PATH)
+    shutil.rmtree(DEFAULT_JAVA_LIB_PATH)
+
+def parse_cmd(argus):
+    if len(argus) > 0:
+        cmd = argus[0]
+        values = argus[1:]
         return (cmd, values)
     else:
         return None
 
 def main():
+    logger.debug("sys args %s" % sys.argv)
     args = sys.argv[1:] 
     cmd, values = parse_cmd(args)
     if cmd == 'install':
         #group, artifact, version = values.split(':')
-        install(*values.split(':'))
+        install(*values[0].split(':'))
+    elif cmd == 'clean':
+        clean()
 
 if __name__ == "__main__":
     main()
