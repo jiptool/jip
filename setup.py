@@ -23,7 +23,7 @@ setup(
     author="Sun Ning",
     author_email="classicning@gmail.com",
     url="https://github.com/sunng87/jip",
-    description="jip install packages, for Jython",
+    description="jip installs packages, for Jython",
     scripts = ["jip"],
     license='gpl',
     py_modules=['jip'],
