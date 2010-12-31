@@ -20,14 +20,13 @@ import sys
 import shutil
 import urllib2
 import logging
+from xml.etree import ElementTree
 from string import Template
 
 JYTHON_HOME = os.environ('JYTHON_HOME')
 DEFAULT_JAVA_LIB_PATH = JYTHON_HOME+'/javalib'
 MAVEN_LOCAL_REPOS = ('local', os.environ['HOME']+'/.m2/repository', 'file')
-MAVEN_PUBLIC_REPOS = ('public', "http://repo1.maven.org/maven2/", 'http')
-
-MAVEN_REPOS = [MAVEN_LOCAL_REPOS, MAVEN_PUBLIC_REPOS]
+MAVEN_PUBLIC_REPOS = ('public', "http://repo1.maven.org/maven2/", 'remote')
 
 logger = logging.logger()
 
@@ -46,6 +45,15 @@ class Artifact(object):
     def to_maven_name(self, ext):
         group = self.group.replace('.', '/')
         return "%s/%s/%s/%s-%s.%s" % (group, self.artifact, self.version, self.artifact, self.version, ext)
+
+    def __eq__(self, other):
+        if isinstance(other, Artifact):
+            return other.group == self.group and other.artifact == self.artifact and other.version == self.version
+        else:
+            return False
+
+    def __str__(self):
+        return "%s:%s:%s" % (self.group, self.artifact, self.version)
 
 class MavenRepos(object):
     def __init__(self, name, uri):
@@ -123,4 +131,91 @@ class MavenHttpRemoteRepos(MavenRepos):
         return maven_path
 
 
+def _get_runtime_dependencies(pom_string):
+    eletree = ElementTree.fromstring(pom_string)
+    
+    dependency_management_version_dict = {}
 
+    dependencyManagement = eletree.findall("dependencyManagement/dependencies/dependency")
+    for dependency in dependencies:
+        group_id = dependency.findtext("groupId")
+        artifact_id = dependency.findtext("artifactId")
+        version = dependency.findtext("version")
+        dependency_management_version_dict[(group_id, artifact_id)] = version
+    ## TODO resolve maven scope "import"
+
+    runtime_dependencies = []
+    dependencies = eletree.findall("dependencies/dependency")
+    for dependency in dependencies:
+        group_id = dependency.findtext("groupId")
+        artifact_id = dependency.findtext("artifactId")
+        version = dependency.findtext("version")
+        scope = dependency.findtext("scope")
+        
+        # runtime dependency
+        if scope is None or scope == 'compile' or scope == 'runtime':
+            if version is None:
+                version = dependency_management_version_dict[(group_id, artifact_id)]
+            artifact = Artifact(group_id, artifact_id, version)
+            runtime_dependencies.append(artifact)
+
+    return runtime_dependencies
+
+def _create_repos(name, uri, repos_type):
+    if repos_type == 'local':
+        return MavenFileSystemRepos(name, uri)
+    if repos_type == 'remote':
+        return MavenHttpRemoteRepos(name, uri)
+
+MAVEN_REPOS = map(lambda x: _create_repos(*x), [MAVEN_LOCAL_REPOS, MAVEN_PUBLIC_REPOS])
+
+def install(group, artifact, version):
+    global MAVEN_REPOS    
+    artifact_to_install = Artifact(group, artifact, version)
+
+    dependency_set = set()
+    installed_set = set()
+
+    dependency_set.add(artifact_to_install)
+
+    while len(dependency_set) > 0:
+        artifact = dependency_set.pop()
+        if artifact in installed_set:
+            continue
+
+        found = False
+        for repos in MAVEN_REPOS:
+
+            pom = repos.download_pom(artifact)
+
+            ## find the artifact
+            if pom is not None:
+                repos.download_jar(artifact)
+                install_set.add(artifact)
+                found = True
+
+                more_dependencies = _get_runtime_dependencies(pom)
+                for d in more_dependencies: dependency_set.add(d)
+                break
+        
+        if not found:
+            logger.error("Artifact not found in repositories: %s", artifact)
+            sys.exit(1)
+
+def parse_cmd(args):
+    if len(args > 0):
+        cmd = args[0]
+        values = args[1:]
+        return (cmd, values)
+    else:
+        return None
+
+def main():
+    args = sys.argv[1:] 
+    cmd, values = parse_cmd(args)
+    if cmd == 'install':
+        #group, artifact, version = values.split(':')
+        install(*values.split(':'))
+
+if __name__ == "__main__":
+    main()
