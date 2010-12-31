@@ -29,9 +29,9 @@ setup(
     py_modules=['jip'],
     classifiers=['Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: GPL',
+        'License :: OSI Approved :: GNU General Public License (GPL)',
         'Topic :: Software Development',
-        'Programming Language :: Jython :: 2.5',
+        'Programming Language :: Python :: 2.5',
         'Programming Language :: Java',
         'Environment :: Console',
         'Operating System :: POSIX']

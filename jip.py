@@ -1,4 +1,4 @@
-#! /usr/bin/jython
+#! ./bin/jython
 # Copyright (C) 2011 Sun Ning<classicning@gmail.com>
 
 # This program is free software: you can redistribute it and/or modify
