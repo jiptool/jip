@@ -177,6 +177,10 @@ def install(group, artifact, version):
     global MAVEN_REPOS    
     artifact_to_install = Artifact(group, artifact, version)
 
+    ## ready set contains artifact jip file names
+    ready_set = os.listdir(DEFAULT_JAVA_LIB_PATH)
+    
+    ## dependency_set and installed_set contain artifact objects
     dependency_set = set()
     installed_set = set()
 
@@ -184,6 +188,9 @@ def install(group, artifact, version):
 
     while len(dependency_set) > 0:
         artifact = dependency_set.pop()
+        if artifact.to_jip_name() in ready_set:
+            continue
+
         if artifact in installed_set:
             continue
 
