@@ -23,6 +23,10 @@ import logging
 from xml.etree import ElementTree
 from string import Template
 
+__author__ = 'Sun Ning <classicning@gmail.com>'
+__version__ = '0.1dev'
+__license__ = 'GPL'
+
 JYTHON_HOME = os.environ('JYTHON_HOME')
 DEFAULT_JAVA_LIB_PATH = JYTHON_HOME+'/javalib'
 MAVEN_LOCAL_REPOS = ('local', os.environ['HOME']+'/.m2/repository', 'file')
