@@ -147,33 +147,81 @@ class MavenHttpRemoteRepos(MavenRepos):
         maven_path = self.uri + maven_name
         return maven_path
 
-
-def _get_runtime_dependencies(pom_string):
+def _get_element_from_pom_string(pom_string):
     ## we use this dirty method to remove namesapce attribute so that elementtree will use default empty namespace
     pom_string = re.sub(r"<project(.|\s)*?>", '<project>', pom_string, 1)
     eletree = ElementTree.fromstring(pom_string)
+    return eletree
 
-    #TODO parsing parent pom for dependencyManagement (allow this method to download another pom from current repository)
-    #TODO parsing in-pom properties
-    #TODO resolve placeholders in pom (properties and pom references)
-    
+def _get_properties_from_element(eletree):
+    # parsing in-pom properties
+    properties = {}
+    properties_eles = eletree.findall("properties/property")
+    for prop in properties_eles:
+        name = prop.get("name")
+        value = prop.get("value")
+        properties[name] = value
+
+    properties["project.groupId"] = eletree.findtext('groupId')
+    properties["project.artifactId"] = eletree.findtext('artifactId')
+    properties["project.version"] = eletree.findtext('version')
+
+    return properties
+
+def _replace_placeholder(text, properties):
+    def subfunc(matchobj):
+        key = matchobj.group(1)
+        if key in properties:
+            return properties[key]
+        else:
+            return matchobj.group(0)
+    return re.sub(r'\$\{(.*?)\}', subfunc, text)
+
+def _get_dependency_management_from_element(eletree):
     dependency_management_version_dict = {}
+    # parsing parent pom for dependencyManagement (allow this method to download another pom from current repository)
+    parent = eletree.find("parent")
+    if parent is not None:
+        parent_group_id = parent.findtext("groupId")
+        parent_artifact_id = parent.findtext("artifactId")
+        parent_version_id = parent.findtext("version")
+
+        artifact = Artifact(parent_group_id, parent_artifact_id, parent_version_id)
+        parent_pom = repos.download_pom(artifact)
+
+        parent_pom_ele = _get_element_from_pom_string(parent_pom)
+        
+        ## parse parent pom recursively
+        parent_dependency_management_dict = _get_dependency_management_from_element(parent_pom_ele)
+
+    properties = _get_properties_from_element(eletree)
 
     dependency_management_dependencies = eletree.findall("dependencyManagement/dependencies/dependency")
     for dependency in dependency_management_dependencies:
-        group_id = dependency.findtext("groupId")
-        artifact_id = dependency.findtext("artifactId")
-        version = dependency.findtext("version")
+        group_id = _replace_placeholder(dependency.findtext("groupId"), properties)
+        artifact_id = _replace_placeholder(dependency.findtext("artifactId"), properties)
+        version = _replace_placeholder(dependency.findtext("version"), properties)
         dependency_management_version_dict[(group_id, artifact_id)] = version
     ## TODO resolve maven scope "import"
+
+    dependency_management_version_dict.update(parent_dependency_management_dict)
+    return dependency_management_version_dict
+
+def _get_runtime_dependencies(pom_string, repos):
+    eletree = _get_element_from_pom_string(pom_string)
+
+    dependency_management_version_dict = _get_dependency_management_from_element(eletree)
+
+    properties = _get_properties_from_element(eletree)
 
     runtime_dependencies = []
     dependencies = eletree.findall("dependencies/dependency")
     logger.debug('Find dependencies declare: %s'% dependencies)
     for dependency in dependencies:
-        group_id = dependency.findtext("groupId")
-        artifact_id = dependency.findtext("artifactId")
-        version = dependency.findtext("version")
+        # resolve placeholders in pom (properties and pom references)
+        group_id = _replace_placeholder(dependency.findtext("groupId"), properties)
+        artifact_id = _replace_placeholder(dependency.findtext("artifactId"), properties)
+        version = _replace_placeholder(dependency.findtext("version"), properties)
         scope = dependency.findtext("scope") or ''
         optional = dependency.findtext("optional") or ''
 
