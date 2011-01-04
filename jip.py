@@ -25,7 +25,7 @@ from xml.etree import ElementTree
 from string import Template
 
 __author__ = 'Sun Ning <classicning@gmail.com>'
-__version__ = '0.1dev'
+__version__ = '0.1'
 __license__ = 'GPL'
 
 JYTHON_HOME = os.environ['VIRTUAL_ENV']
@@ -37,7 +37,7 @@ if not os.path.exists(DEFAULT_JAVA_LIB_PATH):
 MAVEN_LOCAL_REPOS = ('local', os.environ['HOME']+'/.m2/repository', 'local')
 MAVEN_PUBLIC_REPOS = ('public', "http://repo1.maven.org/maven2/", 'remote')
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('jip')
 
 class Artifact(object):
