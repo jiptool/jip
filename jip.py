@@ -147,102 +147,139 @@ class MavenHttpRemoteRepos(MavenRepos):
         maven_path = self.uri + maven_name
         return maven_path
 
-def _get_element_from_pom_string(pom_string):
-    ## we use this dirty method to remove namesapce attribute so that elementtree will use default empty namespace
-    pom_string = re.sub(r"<project(.|\s)*?>", '<project>', pom_string, 1)
-    eletree = ElementTree.fromstring(pom_string)
-    return eletree
+class Pom(object):
+    def __init__(self, pom_string, repos):
+        self.pom_string = pom_string
+        self.repos = repos
+        self.eletree = None
+        self.properties = None
+        self.dep_mgmt = None
+        self.parent = None
 
-def _get_properties_from_element(eletree):
-    # parsing in-pom properties
-    properties = {}
-    properties_eles = eletree.findall("properties/property")
-    for prop in properties_eles:
-        name = prop.get("name")
-        value = prop.get("value")
-        properties[name] = value
-    return properties
+    def get_element_tree(self):
+        if self.eletree is None:
+            ## we use this dirty method to remove namesapce attribute so that elementtree will use default empty namespace
+            pom_string = re.sub(r"<project(.|\s)*?>", '<project>', self.pom_string, 1)
+            self.eletree = ElementTree.fromstring(pom_string)
+        return self.eletree
 
-def _get_in_pom_properties_from_element(eletree):
-    properties = {}
-    properties["project.groupId"] = eletree.findtext('groupId')
-    properties["project.artifactId"] = eletree.findtext('artifactId')
-    properties["project.version"] = eletree.findtext('version')
+    def get_parent_pom(self):
+        if self.parent is not None:
+            return self.parent
 
-    properties["pom.groupId"] = eletree.findtext('groupId')
-    properties["pom.artifactId"] = eletree.findtext('artifactId')
-    properties["pom.version"] = eletree.findtext('version')
-    return properties
+        eletree = self.get_element_tree()
+        parent = eletree.find("parent")
+        if parent is not None:
+            parent_group_id = parent.findtext("groupId")
+            parent_artifact_id = parent.findtext("artifactId")
+            parent_version_id = parent.findtext("version")
 
-def _replace_placeholder(text, properties):
-    def subfunc(matchobj):
-        key = matchobj.group(1)
-        if key in properties:
-            return properties[key]
+            artifact = Artifact(parent_group_id, parent_artifact_id, parent_version_id)
+            parent_pom = self.repos.download_pom(artifact)
+            self.parent = Pom(parent_pom, self.repos)
+            return self.parent
         else:
-            return matchobj.group(0)
-    return re.sub(r'\$\{(.*?)\}', subfunc, text)
+            return None
 
-def _get_dependency_management_from_element(eletree, repos):
-    dependency_management_version_dict = {}
-    # parsing parent pom for dependencyManagement (allow this method to download another pom from current repository)
-    parent = eletree.find("parent")
-    if parent is not None:
-        parent_group_id = parent.findtext("groupId")
-        parent_artifact_id = parent.findtext("artifactId")
-        parent_version_id = parent.findtext("version")
+    def get_dependency_management(self):
+        if self.dep_mgmt is not None:
+            return self.dep_mgmt
 
-        artifact = Artifact(parent_group_id, parent_artifact_id, parent_version_id)
-        parent_pom = repos.download_pom(artifact)
+        dependency_management_version_dict = {}
 
-        parent_pom_ele = _get_element_from_pom_string(parent_pom)
-        
-        ## parse parent pom recursively
-        parent_dependency_management_dict = _get_dependency_management_from_element(parent_pom_ele, repos)
-        dependency_management_version_dict.update(parent_dependency_management_dict)
+        parent = self.get_parent_pom()
+        if parent is not None:
+            dependency_management_version_dict.update(parent.get_dependency_management())
 
-    properties = _get_properties_from_element(eletree)
+        properties = self.get_properties()
+        eletree = self.get_element_tree()
+        dependency_management_dependencies = eletree.findall("dependencyManagement/dependencies/dependency")
+        for dependency in dependency_management_dependencies:
+            group_id = self.__resolve_placeholder(dependency.findtext("groupId"), properties)
+            artifact_id = self.__resolve_placeholder(dependency.findtext("artifactId"), properties)
+            version = self.__resolve_placeholder(dependency.findtext("version"), properties)
+            dependency_management_version_dict[(group_id, artifact_id)] = version
 
-    dependency_management_dependencies = eletree.findall("dependencyManagement/dependencies/dependency")
-    for dependency in dependency_management_dependencies:
-        group_id = _replace_placeholder(dependency.findtext("groupId"), properties)
-        artifact_id = _replace_placeholder(dependency.findtext("artifactId"), properties)
-        version = _replace_placeholder(dependency.findtext("version"), properties)
-        dependency_management_version_dict[(group_id, artifact_id)] = version
-    ## TODO resolve maven scope "import"
+        self.dep_mgmt = dependency_management_version_dict
+        return dependency_management_version_dict
 
-    return dependency_management_version_dict
+    def get_dependencies(self):
+        dep_mgmt = self.get_dependency_management()
+        props = self.get_properties()
+        eletree = self.get_element_tree()
 
-def _get_runtime_dependencies(pom_string, repos):
-    eletree = _get_element_from_pom_string(pom_string)
+        runtime_dependencies = []
 
-    dependency_management_version_dict = _get_dependency_management_from_element(eletree, repos)
+        dependencies = eletree.findall("dependencies/dependency")
+        for dependency in dependencies:
+            # resolve placeholders in pom (properties and pom references)
+            group_id = self.__resolve_placeholder(dependency.findtext("groupId"), props)
+            artifact_id = self.__resolve_placeholder(dependency.findtext("artifactId"), props)
+            version = dependency.findtext("version")
+            if version is not None:
+                version = self.__resolve_placeholder(version, props)
 
-    properties = _get_properties_from_element(eletree)
+            scope = dependency.findtext("scope") or ''
+            optional = dependency.findtext("optional") or ''
 
-    runtime_dependencies = []
-    dependencies = eletree.findall("dependencies/dependency")
-    logger.debug('Find dependencies declare: %s'% dependencies)
-    for dependency in dependencies:
-        # resolve placeholders in pom (properties and pom references)
-        group_id = _replace_placeholder(dependency.findtext("groupId"), properties)
-        artifact_id = _replace_placeholder(dependency.findtext("artifactId"), properties)
-        version = dependency.findtext("version")
-        if version is not None:
-            version = _replace_placeholder(version, properties)
+            # runtime dependency
+            if (scope == '' or scope == 'compile' or scope == 'runtime') and (optional == '' or optional == 'false'):
+                if version is None:
+                    version = dep_mgmt[(group_id, artifact_id)]
+                artifact = Artifact(group_id, artifact_id, version)
+                runtime_dependencies.append(artifact)
 
-        scope = dependency.findtext("scope") or ''
-        optional = dependency.findtext("optional") or ''
+        logger.debug('Find dependencies: %s'% runtime_dependencies)
+        return runtime_dependencies
 
-        # runtime dependency
-        if (scope == '' or scope == 'compile' or scope == 'runtime') and (optional == '' or optional == 'false'):
-            if version is None:
-                version = dependency_management_version_dict[(group_id, artifact_id)]
-            artifact = Artifact(group_id, artifact_id, version)
-            runtime_dependencies.append(artifact)
+    def get_properties(self):
+        if self.properties is not None:
+            return self.properties
 
-    logger.debug('Find dependencies: %s'% runtime_dependencies)
-    return runtime_dependencies
+        eletree = self.get_element_tree()
+        # parsing in-pom properties
+        properties = {}
+        properties_ele = eletree.find("properties")
+        if properties_ele is not None:
+            prop_eles = properties_ele.getchildren()
+            for prop_ele in prop_eles:
+                if prop_ele.tag == 'property':
+                    name = prop_ele.get("name")
+                    value = prop_ele.get("value")
+                else:
+                    name = prop_ele.tag
+                    value = prop_ele.text
+                properties[name] = value
+
+        parent = self.get_parent_pom()
+        if parent is not None:
+            properties.update(parent.get_properties())
+
+        ## pom specific elements
+        groupId = eletree.findtext('groupId')
+        artifactId = eletree.findtext('artifactId')
+        version = eletree.findtext('version')
+        if version is None:
+            version = eletree.findtext('parent/version')
+
+        properties["project.groupId"] = groupId
+        properties["project.artifactId"] = artifactId
+        properties["project.version"] = version
+
+        properties["pom.groupId"] = groupId
+        properties["pom.artifactId"] = artifactId
+        properties["pom.version"] = version
+        self.properties = properties
+        return properties
+
+    def __resolve_placeholder(self, text, properties):
+       def subfunc(matchobj):
+            key = matchobj.group(1)
+            if key in properties:
+                return properties[key]
+            else:
+                return matchobj.group(0)
+       return re.sub(r'\$\{(.*?)\}', subfunc, text)
 
 def _create_repos(name, uri, repos_type):
     if repos_type == 'local':
@@ -284,7 +321,8 @@ def install(group, artifact, version):
                     installed_set.add(artifact)
                 found = True
 
-                more_dependencies = _get_runtime_dependencies(pom, repos)
+                pom_obj = Pom(pom, repos)
+                more_dependencies = pom_obj.get_dependencies()
                 for d in more_dependencies: dependency_set.add(d)
                 break
         
