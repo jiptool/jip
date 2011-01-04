@@ -87,14 +87,14 @@ class MavenFileSystemRepos(MavenRepos):
 
     def get_artifact_uri(self, artifact, ext):
         maven_name = artifact.to_maven_name(ext)
-        maven_file_path = self.uri + maven_name
+        maven_file_path = os.path.join(self.uri,maven_name)
         return maven_file_path
 
     def download_jar(self, artifact, local_path=DEFAULT_JAVA_LIB_PATH):
         maven_file_path = self.get_artifact_uri(artifact, 'jar')
         logger.info("Retrieving jar package from %s:" % self.name)
         logger.info("%s" % maven_file_path)
-        if os.path.exsits(maven_file_path):
+        if os.path.exists(maven_file_path):
             local_jip_path = local_path+"/"+artifact.to_jip_name()
             logger.info("Copying file %s" % maven_file_path)
             shutil.copy(maven_file_path, local_jip_path)
@@ -111,11 +111,13 @@ class MavenFileSystemRepos(MavenRepos):
             pom_file.close()
             return data
         else:
+            logger.info('Pom file not found at %s'% maven_file_path)
             return None
 
 class MavenHttpRemoteRepos(MavenRepos):
     def __init__(self, name, uri):
         MavenRepos.__init__(self, name, uri)
+        self.pom_cache = {}
 
     def download_jar(self, artifact, local_path=DEFAULT_JAVA_LIB_PATH):
         maven_path = self.get_artifact_uri(artifact, 'jar')
@@ -131,12 +133,18 @@ class MavenHttpRemoteRepos(MavenRepos):
         logger.info('Jar download completed to %s' % maven_path)
 
     def download_pom(self, artifact):
+        if artifact in self.pom_cache:
+            return self.pom_cache[artifact]
         maven_path = self.get_artifact_uri(artifact, 'pom')
         try:
             logger.info('Opening pom file %s'% maven_path)
             f = urllib2.urlopen(maven_path)
             data =  f.read()
             f.close()
+            
+            ## cache
+            self.pom_cache[artifact] = data
+
             return data
         except urllib2.HTTPError:
             logger.info('Pom file not found at %s'% maven_path)
@@ -147,10 +155,18 @@ class MavenHttpRemoteRepos(MavenRepos):
         maven_path = self.uri + maven_name
         return maven_path
 
+def _create_repos(name, uri, repos_type):
+    if repos_type == 'local':
+        return MavenFileSystemRepos(name, uri)
+    if repos_type == 'remote':
+        return MavenHttpRemoteRepos(name, uri)
+
+## TODO allow custom repository configuration from a config file
+MAVEN_REPOS = map(lambda x: _create_repos(*x), [MAVEN_LOCAL_REPOS, MAVEN_PUBLIC_REPOS])
+
 class Pom(object):
-    def __init__(self, pom_string, repos):
+    def __init__(self, pom_string):
         self.pom_string = pom_string
-        self.repos = repos
         self.eletree = None
         self.properties = None
         self.dep_mgmt = None
@@ -175,9 +191,14 @@ class Pom(object):
             parent_version_id = parent.findtext("version")
 
             artifact = Artifact(parent_group_id, parent_artifact_id, parent_version_id)
-            parent_pom = self.repos.download_pom(artifact)
+            global MAVEN_REPOS
+            for repos in MAVEN_REPOS:
+                parent_pom = repos.download_pom(artifact)
+                if parent_pom is not None:
+                    break
+
             if parent_pom is not None:
-                self.parent = Pom(parent_pom, self.repos)
+                self.parent = Pom(parent_pom)
                 return self.parent
             else:
                 logger.error("cannot find parent pom %s" % parent_pom)
@@ -206,9 +227,13 @@ class Pom(object):
             scope = dependency.findtext("scope")
             if scope is not None and scope == 'import':
                 artifact = Artifact(group_id, artifact_id, version)
-                import_pom = self.repos.download_pom(artifact)
+                global MAVEN_REPOS
+                for repos in MAVEN_REPOS:
+                    import_pom = repos.download_pom(artifact)
+                    if import_pom is not None:
+                        break
                 if import_pom is not None:
-                    import_pom = Pom(import_pom. self.repos)
+                    import_pom = Pom(import_pom)
                     dependency_management_version_dict.update(import_pom.get_dependency_management())
                 else:
                     logger.error("can not find dependency management import: %s" % artifact)
@@ -297,21 +322,7 @@ class Pom(object):
                 return matchobj.group(0)
        return re.sub(r'\$\{(.*?)\}', subfunc, text)
 
-def _create_repos(name, uri, repos_type):
-    if repos_type == 'local':
-        return MavenFileSystemRepos(name, uri)
-    if repos_type == 'remote':
-        return MavenHttpRemoteRepos(name, uri)
-
-## TODO allow custom repository configuration from a config file
-MAVEN_REPOS = map(lambda x: _create_repos(*x), [MAVEN_LOCAL_REPOS, MAVEN_PUBLIC_REPOS])
-
-def install(artifact_identifier):
-    """Install a package with maven coordinate "groupId:artifactId:version" """
-    group, artifact, version = artifact_identifier.split(":")
-    global MAVEN_REPOS    
-    artifact_to_install = Artifact(group, artifact, version)
-
+def _install(*artifacts):
     ## ready set contains artifact jip file names
     ready_set = os.listdir(DEFAULT_JAVA_LIB_PATH)
     
@@ -319,7 +330,8 @@ def install(artifact_identifier):
     dependency_set = set()
     installed_set = set()
 
-    dependency_set.add(artifact_to_install)
+    for a in artifacts:
+        dependency_set.add(a)
 
     while len(dependency_set) > 0:
         artifact = dependency_set.pop()
@@ -337,9 +349,10 @@ def install(artifact_identifier):
                 if not artifact.to_jip_name() in ready_set:
                     repos.download_jar(artifact)
                     installed_set.add(artifact)
+                    ready_set.append(artifact.to_jip_name())
                 found = True
 
-                pom_obj = Pom(pom, repos)
+                pom_obj = Pom(pom)
                 more_dependencies = pom_obj.get_dependencies()
                 for d in more_dependencies: dependency_set.add(d)
                 break
@@ -347,6 +360,14 @@ def install(artifact_identifier):
         if not found:
             logger.error("Artifact not found in repositories: %s", artifact)
             sys.exit(1)
+
+def install(artifact_identifier):
+    """Install a package with maven coordinate "groupId:artifactId:version" """
+    group, artifact, version = artifact_identifier.split(":")
+    global MAVEN_REPOS    
+    artifact_to_install = Artifact(group, artifact, version)
+
+    _install(artifact_to_install)
 
 def clean():
     """ Remove all downloaded packages """
@@ -357,8 +378,11 @@ def clean():
 def resolve(pomfile):
     """ Resolve and download dependencies in pom file """
     pomfile = open(pomfile, 'r')
+    pomstring = pomfile.read()
+    pom = Pom(pomstring)
 
-    pass
+    dependencies = pom.get_dependencies()
+    _install(*dependencies)
 
 commands = {
         "install": install,
