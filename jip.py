@@ -23,6 +23,7 @@ import logging
 import re
 from xml.etree import ElementTree
 from string import Template
+from ConfigParser import ConfigParser
 
 __author__ = 'Sun Ning <classicning@gmail.com>'
 __version__ = '0.1'
@@ -161,8 +162,25 @@ def _create_repos(name, uri, repos_type):
     if repos_type == 'remote':
         return MavenHttpRemoteRepos(name, uri)
 
-## TODO allow custom repository configuration from a config file
-MAVEN_REPOS = map(lambda x: _create_repos(*x), [MAVEN_LOCAL_REPOS, MAVEN_PUBLIC_REPOS])
+def _load_config():
+    default_config = os.path.expanduser('~/.jip')
+    if os.path.exists(default_config):
+        config = ConfigParser()
+        config.read(default_config)
+
+        repos = []
+        for section in config.sections():
+            name = section
+            uri = config.get(section, "uri")
+            rtype = config.get(section, "type")
+            repos.append((name, uri, rtype))
+        return repos
+    else:
+        return None
+
+## allow custom repository configuration from a config file
+MAVEN_REPOS = map(lambda x: _create_repos(*x), 
+        _load_config() or [MAVEN_LOCAL_REPOS, MAVEN_PUBLIC_REPOS])
 
 class Pom(object):
     def __init__(self, pom_string):
