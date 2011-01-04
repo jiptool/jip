@@ -176,8 +176,12 @@ class Pom(object):
 
             artifact = Artifact(parent_group_id, parent_artifact_id, parent_version_id)
             parent_pom = self.repos.download_pom(artifact)
-            self.parent = Pom(parent_pom, self.repos)
-            return self.parent
+            if parent_pom is not None:
+                self.parent = Pom(parent_pom, self.repos)
+                return self.parent
+            else:
+                logger.error("cannot find parent pom %s" % parent_pom)
+                sys.exit(1)
         else:
             return None
 
@@ -198,7 +202,19 @@ class Pom(object):
             group_id = self.__resolve_placeholder(dependency.findtext("groupId"), properties)
             artifact_id = self.__resolve_placeholder(dependency.findtext("artifactId"), properties)
             version = self.__resolve_placeholder(dependency.findtext("version"), properties)
-            dependency_management_version_dict[(group_id, artifact_id)] = version
+
+            scope = dependency.findtext("scope")
+            if scope is not None and scope == 'import':
+                artifact = Artifact(group_id, artifact_id, version)
+                import_pom = self.repos.download_pom(artifact)
+                if import_pom is not None:
+                    import_pom = Pom(import_pom. self.repos)
+                    dependency_management_version_dict.update(import_pom.get_dependency_management())
+                else:
+                    logger.error("can not find dependency management import: %s" % artifact)
+                    sys.exit(1)
+            else:
+                dependency_management_version_dict[(group_id, artifact_id)] = version
 
         self.dep_mgmt = dependency_management_version_dict
         return dependency_management_version_dict
