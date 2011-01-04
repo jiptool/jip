@@ -161,11 +161,17 @@ def _get_properties_from_element(eletree):
         name = prop.get("name")
         value = prop.get("value")
         properties[name] = value
+    return properties
 
+def _get_in_pom_properties_from_element(eletree):
+    properties = {}
     properties["project.groupId"] = eletree.findtext('groupId')
     properties["project.artifactId"] = eletree.findtext('artifactId')
     properties["project.version"] = eletree.findtext('version')
 
+    properties["pom.groupId"] = eletree.findtext('groupId')
+    properties["pom.artifactId"] = eletree.findtext('artifactId')
+    properties["pom.version"] = eletree.findtext('version')
     return properties
 
 def _replace_placeholder(text, properties):
@@ -177,7 +183,7 @@ def _replace_placeholder(text, properties):
             return matchobj.group(0)
     return re.sub(r'\$\{(.*?)\}', subfunc, text)
 
-def _get_dependency_management_from_element(eletree):
+def _get_dependency_management_from_element(eletree, repos):
     dependency_management_version_dict = {}
     # parsing parent pom for dependencyManagement (allow this method to download another pom from current repository)
     parent = eletree.find("parent")
@@ -192,7 +198,8 @@ def _get_dependency_management_from_element(eletree):
         parent_pom_ele = _get_element_from_pom_string(parent_pom)
         
         ## parse parent pom recursively
-        parent_dependency_management_dict = _get_dependency_management_from_element(parent_pom_ele)
+        parent_dependency_management_dict = _get_dependency_management_from_element(parent_pom_ele, repos)
+        dependency_management_version_dict.update(parent_dependency_management_dict)
 
     properties = _get_properties_from_element(eletree)
 
@@ -204,13 +211,12 @@ def _get_dependency_management_from_element(eletree):
         dependency_management_version_dict[(group_id, artifact_id)] = version
     ## TODO resolve maven scope "import"
 
-    dependency_management_version_dict.update(parent_dependency_management_dict)
     return dependency_management_version_dict
 
 def _get_runtime_dependencies(pom_string, repos):
     eletree = _get_element_from_pom_string(pom_string)
 
-    dependency_management_version_dict = _get_dependency_management_from_element(eletree)
+    dependency_management_version_dict = _get_dependency_management_from_element(eletree, repos)
 
     properties = _get_properties_from_element(eletree)
 
@@ -221,7 +227,10 @@ def _get_runtime_dependencies(pom_string, repos):
         # resolve placeholders in pom (properties and pom references)
         group_id = _replace_placeholder(dependency.findtext("groupId"), properties)
         artifact_id = _replace_placeholder(dependency.findtext("artifactId"), properties)
-        version = _replace_placeholder(dependency.findtext("version"), properties)
+        version = dependency.findtext("version")
+        if version is not None:
+            version = _replace_placeholder(version, properties)
+
         scope = dependency.findtext("scope") or ''
         optional = dependency.findtext("optional") or ''
 
@@ -275,7 +284,7 @@ def install(group, artifact, version):
                     installed_set.add(artifact)
                 found = True
 
-                more_dependencies = _get_runtime_dependencies(pom)
+                more_dependencies = _get_runtime_dependencies(pom, repos)
                 for d in more_dependencies: dependency_set.add(d)
                 break
         
