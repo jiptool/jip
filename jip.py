@@ -306,7 +306,9 @@ def _create_repos(name, uri, repos_type):
 ## TODO allow custom repository configuration from a config file
 MAVEN_REPOS = map(lambda x: _create_repos(*x), [MAVEN_LOCAL_REPOS, MAVEN_PUBLIC_REPOS])
 
-def install(group, artifact, version):
+def install(artifact_identifier):
+    """Install a package with maven coordinate "groupId:artifactId:version" """
+    group, artifact, version = artifact_identifier.split(":")
     global MAVEN_REPOS    
     artifact_to_install = Artifact(group, artifact, version)
 
@@ -347,8 +349,22 @@ def install(group, artifact, version):
             sys.exit(1)
 
 def clean():
+    """ Remove all downloaded packages """
     logger.info("remove java libs in %s" % DEFAULT_JAVA_LIB_PATH)
     shutil.rmtree(DEFAULT_JAVA_LIB_PATH)
+
+## another resolve task, allow jip to resovle dependencies from a pom file.
+def resolve(pomfile):
+    """ Resolve and download dependencies in pom file """
+    pomfile = open(pomfile, 'r')
+
+    pass
+
+commands = {
+        "install": install,
+        "clean": clean,
+        "resolve": resolve,
+        }
 
 def parse_cmd(argus):
     if len(argus) > 0:
@@ -356,20 +372,21 @@ def parse_cmd(argus):
         values = argus[1:]
         return (cmd, values)
     else:
-        return None
+        return (None, None)
+
+def print_help():
+    print "Available commands:"
+    for name, func in commands.items():
+        print "\t%s\t\t%s" % (name, func.__doc__)
 
 def main():
     logger.debug("sys args %s" % sys.argv)
     args = sys.argv[1:] 
     cmd, values = parse_cmd(args)
-    ## TODO a command dict contains data structure: (command_name, command function )
-    if cmd == 'install':
-        #group, artifact, version = values.split(':')
-        install(*values[0].split(':'))
-    elif cmd == 'clean':
-        clean()
-## TODO another resolve task, allow jip to resovle dependencies from a pom file.
-## TODO a paste template to generate a basic structure of jython project (contains a pom file)
-
+    if cmd in commands:
+        commands[cmd](*values)
+    else:
+        print_help()
+        
 if __name__ == "__main__":
     main()
