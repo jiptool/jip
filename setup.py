@@ -24,10 +24,9 @@ setup(
     author_email="classicning@gmail.com",
     url="https://github.com/sunng87/jip",
     description="jip installs packages, for Jython",
-    scripts = ["jip"],
+    scripts = ["jip", "jython-all"],
     license='gpl',
     py_modules=['jip'],
-    platform="Linux",
     long_description="""
     Due to the complexity of traditional Java dependency management tool(ivy/maven), I created jip for simple and easy, in a pythonic way. Use jip, you can download and install jars from maven central repositories, just like the way of well known python package management tool, pip.
 
