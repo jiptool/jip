@@ -53,6 +53,27 @@ Another script `jython-all` is shipped with jip. To run jython with Java package
 
 `jip clean` will remove everything you downloaded, be careful to use it.
 
+Configuration
+-------------
+
+You can configure custom maven repository with a dot file in your home directory : `.jip`
+
+Here is an example:
+
+    [jboss]
+    uri=http://repository.jboss.org/maven2/
+    type=remote
+
+    [local]
+    uri=/home/sun/.m2/repository/
+    type=local
+
+    [central]
+    uri=http://repo1.maven.org/maven2/
+    type=remote
+
+Be careful that the .jip file will overwrite default settings, so you must include local and central repository explicitly.
+
 Links
 -----
 
