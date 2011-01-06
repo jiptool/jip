@@ -26,15 +26,17 @@ from string import Template
 from ConfigParser import ConfigParser
 
 __author__ = 'Sun Ning <classicning@gmail.com>'
-__version__ = '0.1'
+__version__ = '0.2dev'
 __license__ = 'GPL'
 
+##TODO check virtual environ and warn user
 JYTHON_HOME = os.environ['VIRTUAL_ENV']
 DEFAULT_JAVA_LIB_PATH = JYTHON_HOME+'/javalib'
 
 if not os.path.exists(DEFAULT_JAVA_LIB_PATH):
     os.mkdir(DEFAULT_JAVA_LIB_PATH)
 
+## TODO use os.path.expanduser
 MAVEN_LOCAL_REPOS = ('local', os.environ['HOME']+'/.m2/repository', 'local')
 MAVEN_PUBLIC_REPOS = ('public', "http://repo1.maven.org/maven2/", 'remote')
 
@@ -66,6 +68,8 @@ class Artifact(object):
     def __str__(self):
         return "%s:%s:%s" % (self.group, self.artifact, self.version)
 
+    ##TODO is_snapshot
+
 class MavenRepos(object):
     def __init__(self, name, uri):
         self.name = name
@@ -81,6 +85,8 @@ class MavenRepos(object):
     def download_pom(self, artifact):
         """ return a content string """
         pass
+
+    ##TODO last_modified
         
 class MavenFileSystemRepos(MavenRepos):
     def __init__(self, name, uri):
@@ -169,6 +175,7 @@ def _load_config():
         config.read(default_config)
 
         repos = []
+        ##TODO only loop section starts with "repos:"
         for section in config.sections():
             name = section
             uri = config.get(section, "uri")
@@ -406,6 +413,7 @@ commands = {
         "install": install,
         "clean": clean,
         "resolve": resolve,
+        #TODO update subcommand
         }
 
 def parse_cmd(argus):
