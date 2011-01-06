@@ -21,6 +21,9 @@ import shutil
 import urllib2
 import logging
 import re
+import stat
+import locale
+import time
 from xml.etree import ElementTree
 from string import Template
 from ConfigParser import ConfigParser
@@ -29,19 +32,27 @@ __author__ = 'Sun Ning <classicning@gmail.com>'
 __version__ = '0.2dev'
 __license__ = 'GPL'
 
-##TODO check virtual environ and warn user
-JYTHON_HOME = os.environ['VIRTUAL_ENV']
-DEFAULT_JAVA_LIB_PATH = JYTHON_HOME+'/javalib'
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('jip')
+
+## check virtual environ and warn user
+if 'VIRTUAL_ENV' in os.environ:
+    JYTHON_HOME = os.environ['VIRTUAL_ENV']
+else:
+    logger.warn('Warning: no virtualenv detected, remember to activate it.')
+    if 'JYTHON_HOME' in os.environ:
+        JYTHON_HOME = os.environ['JYTHON_HOME']
+    else:
+        ## fail back to use current directory
+        JYTHON_HOME = os.getcwd()
+        
+DEFAULT_JAVA_LIB_PATH = os.path.join(JYTHON_HOME, 'javalib')
 
 if not os.path.exists(DEFAULT_JAVA_LIB_PATH):
     os.mkdir(DEFAULT_JAVA_LIB_PATH)
 
-## TODO use os.path.expanduser
-MAVEN_LOCAL_REPOS = ('local', os.environ['HOME']+'/.m2/repository', 'local')
+MAVEN_LOCAL_REPOS = ('local', os.path.expanduser('~/.m2/repository'), 'local')
 MAVEN_PUBLIC_REPOS = ('public', "http://repo1.maven.org/maven2/", 'remote')
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('jip')
 
 class Artifact(object):
     def __init__(self, group, artifact, version):
@@ -68,7 +79,8 @@ class Artifact(object):
     def __str__(self):
         return "%s:%s:%s" % (self.group, self.artifact, self.version)
 
-    ##TODO is_snapshot
+    def is_snapshot(self):
+        return self.version.find('SNAPSHOT') > 0
 
 class MavenRepos(object):
     def __init__(self, name, uri):
@@ -86,7 +98,9 @@ class MavenRepos(object):
         """ return a content string """
         pass
 
-    ##TODO last_modified
+    def last_modified(self, artifact):
+        """ return last modified timestamp """
+        pass
         
 class MavenFileSystemRepos(MavenRepos):
     def __init__(self, name, uri):
@@ -119,6 +133,14 @@ class MavenFileSystemRepos(MavenRepos):
             return data
         else:
             logger.info('Pom file not found at %s'% maven_file_path)
+            return None
+
+    def last_modified(self, artifact):
+        maven_file_path = self.get_artifact_uri(artifact, 'pom')
+        if os.path.exists(maven_file_path):
+            last_modify = stat.ST_MTIME(os.stat(maven_file_path))
+            return last_modify
+        else:
             return None
 
 class MavenHttpRemoteRepos(MavenRepos):
@@ -162,6 +184,21 @@ class MavenHttpRemoteRepos(MavenRepos):
         maven_path = self.uri + maven_name
         return maven_path
 
+    def last_modified(self, artifact):
+        maven_path = self.get_artifact_uri(artifact, 'pom')
+        try:
+            fd = urllib2.urlopen(maven_path)
+            if 'last-modified' in fd.headers:
+                ts = fd.headers['last-modified']
+                locale.setlocale(locale.LC_TIME, 'en_US')
+                last_modified = time.strptime(ts, '%a, %d %b %Y %H:%M:%S %Z')
+                return time.mktime(last_modified)
+            else:
+                return 0
+        except urllib2.HTTPError:
+            return None
+
+
 def _create_repos(name, uri, repos_type):
     if repos_type == 'local':
         return MavenFileSystemRepos(name, uri)
@@ -175,9 +212,10 @@ def _load_config():
         config.read(default_config)
 
         repos = []
-        ##TODO only loop section starts with "repos:"
-        for section in config.sections():
-            name = section
+        ## only loop section starts with "repos:"
+        repos_sections = filter(lambda x:x.startswith("repos:"), config.sections())
+        for section in repos_sections:
+            name = section.split(':')[1]
             uri = config.get(section, "uri")
             rtype = config.get(section, "type")
             repos.append((name, uri, rtype))
@@ -348,6 +386,7 @@ class Pom(object):
        return re.sub(r'\$\{(.*?)\}', subfunc, text)
 
 def _install(*artifacts):
+    global MAVEN_REPOS    
     ## ready set contains artifact jip file names
     ready_set = os.listdir(DEFAULT_JAVA_LIB_PATH)
     
@@ -389,7 +428,6 @@ def _install(*artifacts):
 def install(artifact_identifier):
     """Install a package with maven coordinate "groupId:artifactId:version" """
     group, artifact, version = artifact_identifier.split(":")
-    global MAVEN_REPOS    
     artifact_to_install = Artifact(group, artifact, version)
 
     _install(artifact_to_install)
@@ -409,11 +447,47 @@ def resolve(pomfile):
     dependencies = pom.get_dependencies()
     _install(*dependencies)
 
+def update(artifact_id):
+    """ update a snapshot artifact, check for new version """
+    group, artifact, version = artifact_id.split(":")
+    artifact = Artifact(group, artifact, version)
+
+    global MAVEN_REPOS    
+    if artifact.is_snapshot():
+        installed_file = os.path.join(DEFAULT_JAVA_LIB_PATH, artifact.to_jip_name())
+        if os.path.exists(installed_file):
+            lm = stat.ST_MTIME(os.stat(installed_file))
+
+            ## find the repository contains the new release
+            selected_repos = None
+            for repos in MAVEN_REPOS:
+                ts = repos.last_modified(artifact)
+                if ts is not None and ts > lm :
+                    lm = ts
+                    selected_repos = repos
+            
+            if selected_repos is not None:
+                ## download new jar
+                selected_repos.download_jar(artifact)
+
+                ## try to update dependencies
+                pomstring = selected_repos.download_pom(artifact)
+                pom = Pom(pomstring)
+                dependencies = pom.get_dependencies()
+                _install(*dependencies)
+
+        else:
+            logger.error('Artifact not installed: %s' % artifact)
+    else:
+        logger.error('Can not update non-snapshot artifact')
+        return
+
+
 commands = {
         "install": install,
         "clean": clean,
         "resolve": resolve,
-        #TODO update subcommand
+        "update": update,
         }
 
 def parse_cmd(argus):
