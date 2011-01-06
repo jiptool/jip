@@ -60,15 +60,15 @@ You can configure custom maven repository with a dot file in your home directory
 
 Here is an example:
 
-    [jboss]
+    [repos:jboss]
     uri=http://repository.jboss.org/maven2/
     type=remote
 
-    [local]
+    [repos:local]
     uri=/home/sun/.m2/repository/
     type=local
 
-    [central]
+    [repos:central]
     uri=http://repo1.maven.org/maven2/
     type=remote
 
