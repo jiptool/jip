@@ -190,10 +190,12 @@ class MavenHttpRemoteRepos(MavenRepos):
             fd = urllib2.urlopen(maven_path)
             if 'last-modified' in fd.headers:
                 ts = fd.headers['last-modified']
+                fd.close()
                 locale.setlocale(locale.LC_TIME, 'en_US')
                 last_modified = time.strptime(ts, '%a, %d %b %Y %H:%M:%S %Z')
                 return time.mktime(last_modified)
             else:
+                fd.close()
                 return 0
         except urllib2.HTTPError:
             return None
