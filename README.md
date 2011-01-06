@@ -45,6 +45,12 @@ jip allows you to define dependencies in a maven pom file, which is more maintai
 
     jip resolve pom.xml
 
+### Update snapshot artifact ###
+
+You can use update command to find and download a new deployed snapshot:
+
+    jip update info.sunng.bason:bason-annotation:0.1-SNAPSHOT
+
 ### Run jython with installed java packages in path ###
 
 Another script `jython-all` is shipped with jip. To run jython with Java packages included in path, just use `jython-all` instead of `jython`
