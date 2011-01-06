@@ -77,7 +77,7 @@ Be careful that the .jip file will overwrite default settings, so you must inclu
 Links
 -----
 
-* [http://sunng.info/blog/jip-0-1](http://sunng.info/blog/jip-0-1/ "a more comprehansive guide")
+* [http://sunng.info/blog/jip-0-1](http://sunng.info/blog/jip-0-1/ "a more comprehensive guide")
 * [http://pypi.python.org/pypi/jip](http://pypi.python.org/pypi/jip "Python cheese shop")
 
 
