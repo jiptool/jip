@@ -144,7 +144,7 @@ class MavenFileSystemRepos(MavenRepos):
     def last_modified(self, artifact):
         maven_file_path = self.get_artifact_uri(artifact, 'pom')
         if os.path.exists(maven_file_path):
-            last_modify = stat.ST_MTIME(os.stat(maven_file_path))
+            last_modify = os.stat(maven_file_path)[stat.ST_MTIME]
             return last_modify
         else:
             return None
@@ -202,9 +202,7 @@ class MavenHttpRemoteRepos(MavenRepos):
         return maven_path
 
     def get_snapshot_info(self, artifact):
-        group = artifact.group.replace('.', '/')
-        metadata_path = "%s/%s/%s/%s/maven-metadata.xml" % (self.uri, group, 
-                self.artifact, self.version)
+        metadata_path = self.get_metadata_path(artifact) 
 
         try:
             f = urllib2.urlopen(metadata_path)
@@ -219,12 +217,16 @@ class MavenHttpRemoteRepos(MavenRepos):
         except urllib2.HTTPError:
             return None
 
-    def last_modified(self, artifact):
+    def get_metadata_path(self, artifact):
         group = artifact.group.replace('.', '/')
         metadata_path = "%s/%s/%s/%s/maven-metadata.xml" % (self.uri, group, 
-                self.artifact, self.version)
+                artifact.artifact, artifact.version)
+        return metadata_path
+
+    def last_modified(self, artifact):
+        metadata_path = self.get_metadata_path(artifact) 
         try:
-            fd = urllib2.urlopen(matadata_path)
+            fd = urllib2.urlopen(metadata_path)
             if 'last-modified' in fd.headers:
                 ts = fd.headers['last-modified']
                 fd.close()
@@ -495,7 +497,7 @@ def update(artifact_id):
     if artifact.is_snapshot():
         installed_file = os.path.join(DEFAULT_JAVA_LIB_PATH, artifact.to_jip_name())
         if os.path.exists(installed_file):
-            lm = stat.ST_MTIME(os.stat(installed_file))
+            lm = os.stat(installed_file)[stat.ST_MTIME]
 
             ## find the repository contains the new release
             selected_repos = None
