@@ -24,7 +24,7 @@ setup(
     author_email="classicning@gmail.com",
     url="https://github.com/sunng87/jip",
     description="jip installs packages, for Jython",
-    scripts = ["jip", "jython-all"],
+    scripts = ["scripts/jip", "scripts/jython-all"],
     license='gpl',
     py_modules=['jip'],
     long_description="""
