@@ -58,6 +58,8 @@ class Artifact(object):
         self.group = group
         self.artifact = artifact
         self.version = version
+        self.timestamp = None
+        self.build_number = None
 
     def to_jip_name(self, pattern="$artifact-$version.$ext", ext="jar"):
         template = Template(pattern)
@@ -68,6 +70,11 @@ class Artifact(object):
     def to_maven_name(self, ext):
         group = self.group.replace('.', '/')
         return "%s/%s/%s/%s-%s.%s" % (group, self.artifact, self.version, self.artifact, self.version, ext)
+
+    def to_maven_snapshot_name(self, ext):
+        group = self.group.replace('.', '/')
+        return "%s/%s/%s/%s-%s-%s.%s" % (group, self.artifact, self.version, self.artifact, 
+                self.timestamp, self.build_number, ext)
 
     def __eq__(self, other):
         if isinstance(other, Artifact):
@@ -163,6 +170,14 @@ class MavenHttpRemoteRepos(MavenRepos):
     def download_pom(self, artifact):
         if artifact in self.pom_cache:
             return self.pom_cache[artifact]
+
+        if artifact.is_snapshot():
+            snapshot_info = self.get_snapshot_info(artifact)
+            if snapshot_info is not None:
+                ts, bn = snapshot_info
+                artifact.timestamp = ts
+                artifact.build_number = bn
+
         maven_path = self.get_artifact_uri(artifact, 'pom')
         try:
             logger.info('Opening pom file %s'% maven_path)
@@ -179,14 +194,37 @@ class MavenHttpRemoteRepos(MavenRepos):
             return None
 
     def get_artifact_uri(self, artifact, ext):
-        maven_name = artifact.to_maven_name(ext)
+        if not artifact.is_snapshot:
+            maven_name = artifact.to_maven_name(ext)
+        else:
+            maven_name = artifact.to_maven_snapshot_name(ext)
         maven_path = self.uri + maven_name
         return maven_path
 
-    def last_modified(self, artifact):
-        maven_path = self.get_artifact_uri(artifact, 'pom')
+    def get_snapshot_info(self, artifact):
+        group = artifact.group.replace('.', '/')
+        metadata_path = "%s/%s/%s/%s/maven-metadata.xml" % (self.uri, group, 
+                self.artifact, self.version)
+
         try:
-            fd = urllib2.urlopen(maven_path)
+            f = urllib2.urlopen(metadata_path)
+            data = f.read()
+            f.close()
+
+            eletree = ElementTree.fromstring(data)
+            timestamp = eletree.findtext('versioning/snapshot/timestamp')
+            build_number = eletree.findtext('versioning/snapshot/buildNumber')
+            
+            return (timestamp, build_number)
+        except urllib2.HTTPError:
+            return None
+
+    def last_modified(self, artifact):
+        group = artifact.group.replace('.', '/')
+        metadata_path = "%s/%s/%s/%s/maven-metadata.xml" % (self.uri, group, 
+                self.artifact, self.version)
+        try:
+            fd = urllib2.urlopen(matadata_path)
             if 'last-modified' in fd.headers:
                 ts = fd.headers['last-modified']
                 fd.close()
