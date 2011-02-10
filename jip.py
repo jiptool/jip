@@ -23,6 +23,7 @@ import re
 import stat
 import locale
 import time
+import hashlib
 from xml.etree import ElementTree
 from string import Template
 from ConfigParser import ConfigParser
@@ -106,6 +107,10 @@ class MavenRepos(object):
 
     def last_modified(self, artifact):
         """ return last modified timestamp """
+        pass
+
+    def download_check_sum(self, checksum_type, origin_file_name):
+        """ return pre calculated checksum value, only avaiable for remote repos """
         pass
         
 class MavenFileSystemRepos(MavenRepos):
@@ -239,6 +244,32 @@ class MavenHttpRemoteRepos(MavenRepos):
         except urllib2.HTTPError:
             return None
 
+    def download_check_sum(self, checksum_type, origin_file_name):
+        """ return pre calculated checksum value, only avaiable for remote repos """
+        checksum_url = origin_file_name + "." + checksum_type
+        try:
+            f = urllib2.urlopen(checksum_url)
+            data = f.read()
+            f.close()
+            return data
+        except urllib2.HTTPError:
+            return None
+
+    def checksum(self, filepath, checksum_type):
+        if checksum_type == 'md5':
+            hasher = hashlib.md5()
+        elif checksum_type == 'sha1':
+            hasher = hashlib.sha1()
+
+        buf_size = 1024*8
+        file_to_check = file(filepath, 'r')
+        buf = file_to_check.read(buf_size)
+        while len(buf) > 0:
+            hasher.update(buf)
+            buf = file_to_check.read(buf_size)
+
+        file_to_check.close()
+        return hasher.hexdigest()
 
 def _create_repos(name, uri, repos_type):
     if repos_type == 'local':
