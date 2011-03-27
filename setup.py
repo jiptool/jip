@@ -27,7 +27,7 @@ setup(
     license='gpl',
     py_modules=['jip'],
     long_description="""
-    Due to the complexity of traditional Java dependency management tool(ivy/maven), I created jip for simple and easy, in a pythonic way. Use jip, you can download and install jars from maven central repositories, just like the way of well known python package management tool, pip.
+    Due to the complexity of traditional Java dependency management tool(ivy/maven), I created jip for simple, easy and pythonic. Use jip, you can download and install jars from maven central repositories, just like the way of well known python package management tool, pip.
 
 The typical usage of jip is:
 jip install [groupId]:[artifactId]:[version]
