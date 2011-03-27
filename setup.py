@@ -18,7 +18,7 @@ from distutils.core import setup
 
 setup(
     name="jip",
-    version="0.2dev",
+    version="0.2dev3",
     author="Sun Ning",
     author_email="classicning@gmail.com",
     url="https://github.com/sunng87/jip",

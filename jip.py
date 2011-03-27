@@ -74,7 +74,8 @@ class Artifact(object):
 
     def to_maven_snapshot_name(self, ext):
         group = self.group.replace('.', '/')
-        return "%s/%s/%s/%s-%s-%s.%s" % (group, self.artifact, self.version, self.artifact, 
+        version_wo_snapshot = self.version.replace('-SNAPSHOT', '')
+        return "%s/%s/%s/%s-%s-%s-%s.%s" % (group, self.artifact, self.version, self.artifact, version_wo_snapshot,
                 self.timestamp, self.build_number, ext)
 
     def __eq__(self, other):
@@ -199,7 +200,7 @@ class MavenHttpRemoteRepos(MavenRepos):
             return None
 
     def get_artifact_uri(self, artifact, ext):
-        if not artifact.is_snapshot:
+        if not artifact.is_snapshot():
             maven_name = artifact.to_maven_name(ext)
         else:
             maven_name = artifact.to_maven_snapshot_name(ext)
