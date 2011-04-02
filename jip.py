@@ -32,7 +32,7 @@ __author__ = 'Sun Ning <classicning@gmail.com>'
 __version__ = '0.2dev'
 __license__ = 'GPL'
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="\033[1m%(name)s\033[0m(%(levelname)s)  %(message)s")
 logger = logging.getLogger('jip')
 
 ## check virtual environ and warn user
