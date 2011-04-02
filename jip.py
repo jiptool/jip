@@ -32,7 +32,7 @@ __author__ = 'Sun Ning <classicning@gmail.com>'
 __version__ = '0.2dev'
 __license__ = 'GPL'
 
-logging.basicConfig(level=logging.INFO, format="\033[1m%(name)s\033[0m(%(levelname)s)  %(message)s")
+logging.basicConfig(level=logging.INFO, format="\033[1m%(name)s\033[0m  %(message)s")
 logger = logging.getLogger('jip')
 
 ## check virtual environ and warn user
@@ -125,26 +125,26 @@ class MavenFileSystemRepos(MavenRepos):
 
     def download_jar(self, artifact, local_path=DEFAULT_JAVA_LIB_PATH):
         maven_file_path = self.get_artifact_uri(artifact, 'jar')
-        logger.info("Retrieving jar package from %s:" % self.name)
-        logger.info("%s" % maven_file_path)
+        logger.info("[Checking] jar package from %s" % self.name)
         if os.path.exists(maven_file_path):
             local_jip_path = local_path+"/"+artifact.to_jip_name()
-            logger.info("Copying file %s" % maven_file_path)
+            logger.info("[Downloading] %s" % maven_file_path)
             shutil.copy(maven_file_path, local_jip_path)
-            logger.info("Copy file to %s completed" % local_jip_path)
+            logger.info("[Finished] %s completed" % local_jip_path)
         else:
+            logger.error("[Error] File not found %s" % maven_file_path)
             raise IOError('File not found:' + maven_file_path)
 
     def download_pom(self, artifact):
         maven_file_path = self.get_artifact_uri(artifact, 'pom')
+        logger.info('[Checking] pom file %s'% maven_file_path)
         if os.path.exists(maven_file_path):
-            logger.info('Opening pom file %s'% maven_file_path)
             pom_file = open(maven_file_path, 'r')
             data =  pom_file.read()
             pom_file.close()
             return data
         else:
-            logger.info('Pom file not found at %s'% maven_file_path)
+            logger.info('[Skipped] Pom file not found at %s' % maven_file_path)
             return None
 
     def last_modified(self, artifact):
@@ -162,7 +162,7 @@ class MavenHttpRemoteRepos(MavenRepos):
 
     def download_jar(self, artifact, local_path=DEFAULT_JAVA_LIB_PATH):
         maven_path = self.get_artifact_uri(artifact, 'jar')
-        logger.info('Downloading jar from %s' % maven_path)
+        logger.info('[Downloading] jar from %s' % maven_path)
         f = urllib2.urlopen(maven_path)
         data =  f.read()
         f.close()
@@ -171,7 +171,7 @@ class MavenHttpRemoteRepos(MavenRepos):
         local_f = open(local_jip_path, 'w')
         local_f.write(data)
         local_f.close()
-        logger.info('Jar download completed to %s' % maven_path)
+        logger.info('[Finished] %s downloaded ' % maven_path)
 
     def download_pom(self, artifact):
         if artifact in self.pom_cache:
@@ -186,7 +186,7 @@ class MavenHttpRemoteRepos(MavenRepos):
 
         maven_path = self.get_artifact_uri(artifact, 'pom')
         try:
-            logger.info('Opening pom file %s'% maven_path)
+            logger.info('[Checking] pom file %s'% maven_path)
             f = urllib2.urlopen(maven_path)
             data =  f.read()
             f.close()
@@ -196,7 +196,7 @@ class MavenHttpRemoteRepos(MavenRepos):
 
             return data
         except urllib2.HTTPError:
-            logger.info('Pom file not found at %s'% maven_path)
+            logger.info('[Skipped] Pom file not found at %s'% maven_path)
             return None
 
     def get_artifact_uri(self, artifact, ext):
@@ -372,7 +372,7 @@ class Pom(object):
                     import_pom = Pom(import_pom)
                     dependency_management_version_dict.update(import_pom.get_dependency_management())
                 else:
-                    logger.error("can not find dependency management import: %s" % artifact)
+                    logger.error("[Error] can not find dependency management import: %s" % artifact)
                     sys.exit(1)
             else:
                 dependency_management_version_dict[(group_id, artifact_id)] = version
@@ -495,7 +495,7 @@ def _install(*artifacts):
                 break
         
         if not found:
-            logger.error("Artifact not found in repositories: %s", artifact)
+            logger.error("[Error] Artifact not found: %s", artifact)
             sys.exit(1)
 
 def install(artifact_identifier):
@@ -507,8 +507,9 @@ def install(artifact_identifier):
 
 def clean():
     """ Remove all downloaded packages """
-    logger.info("remove java libs in %s" % DEFAULT_JAVA_LIB_PATH)
+    logger.info("[Deleting] remove java libs in %s" % DEFAULT_JAVA_LIB_PATH)
     shutil.rmtree(DEFAULT_JAVA_LIB_PATH)
+    logger.info("[Finished] all downloaded file erased")
 
 ## another resolve task, allow jip to resovle dependencies from a pom file.
 def resolve(pomfile):
@@ -550,9 +551,9 @@ def update(artifact_id):
                 _install(*dependencies)
 
         else:
-            logger.error('Artifact not installed: %s' % artifact)
+            logger.error('[Error] Artifact not installed: %s' % artifact)
     else:
-        logger.error('Can not update non-snapshot artifact')
+        logger.error('[Error] Can not update non-snapshot artifact')
         return
 
 
