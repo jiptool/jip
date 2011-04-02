@@ -86,7 +86,7 @@ Here is an example:
 
 Be careful that the .jip file will overwrite default settings, 
 so you must include default local and central repository explicitly. 
-jip will skip repositories once it found packages matches the maven coordinator.
+jip will skip repositories once it finds package matches the maven coordinator.
 
 
 Links
