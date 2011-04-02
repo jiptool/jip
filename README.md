@@ -1,7 +1,8 @@
 jip
 ===
 
-Jip is the jython equivalent of pip to python. It will resolve dependencies and download jars for your jython environment.
+Jip is the jython equivalent of pip to python. It will resolve dependencies and 
+download jars for your jython environment.
 
 License
 -------
@@ -11,7 +12,8 @@ jip itself is distributed under the license of GNU General Public License, Versi
 Install
 -------
 
-jip is required to run within virtualenv, which is a best practice for python/jython developers to created a standalone, portable environment.
+jip is required to run within virtualenv, which is a best practice for 
+python/jython developers to created a standalone, portable environment.
 
 Create virtualenv with jython:
 
@@ -31,7 +33,8 @@ Usage
 
 ### Install a Java package ###
 
-jip will resolve dependencies and download jars from maven repositories. You can install a Java package just like what you do python with pip:
+jip will resolve dependencies and download jars from maven repositories. 
+You can install a Java package just like what you do python with pip:
 
     jip install <groupId>:<artifactId>:<version>
 
@@ -41,7 +44,8 @@ Take spring as example:
 
 ### Resolve dependencies defined in a pom ###
 
-jip allows you to define dependencies in a maven pom file, which is more maintainable than typing install command one by one:
+jip allows you to define dependencies in a maven pom file, which is more 
+maintainable than typing install command one by one:
 
     jip resolve pom.xml
 
@@ -53,7 +57,8 @@ You can use update command to find and download a new deployed snapshot:
 
 ### Run jython with installed java packages in path ###
 
-Another script `jython-all` is shipped with jip. To run jython with Java packages included in path, just use `jython-all` instead of `jython`
+Another script `jython-all` is shipped with jip. To run jython with Java 
+packages included in path, just use `jython-all` instead of `jython`
 
 ### Clean ###
 
@@ -62,7 +67,8 @@ Another script `jython-all` is shipped with jip. To run jython with Java package
 Configuration
 -------------
 
-You can configure custom maven repository with a dot file in your home directory : `.jip`
+You can configure custom maven repository with a dot file in your home 
+directory :`$HOME/.jip`
 
 Here is an example:
 
@@ -78,7 +84,10 @@ Here is an example:
     uri=http://repo1.maven.org/maven2/
     type=remote
 
-Be careful that the .jip file will overwrite default settings, so you must include local and central repository explicitly.
+Be careful that the .jip file will overwrite default settings, 
+so you must include default local and central repository explicitly. 
+jip will skip repositories once it found packages matches the maven coordinator.
+
 
 Links
 -----
