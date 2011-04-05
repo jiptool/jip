@@ -279,10 +279,12 @@ def _create_repos(name, uri, repos_type):
         return MavenHttpRemoteRepos(name, uri)
 
 def _load_config():
-    default_config = os.path.expanduser('~/.jip')
-    if os.path.exists(default_config):
+    config_file_path = os.path.join(JYTHON_HOME, '.jip')
+    if not os.path.exists(config_file_path):
+        config_file_path = os.path.expanduser('~/.jip')
+    if os.path.exists(config_file_path):
         config = ConfigParser()
-        config.read(default_config)
+        config.read(config_file_path)
 
         repos = []
         ## only loop section starts with "repos:"

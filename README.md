@@ -67,8 +67,11 @@ packages included in path, just use `jython-all` instead of `jython`
 Configuration
 -------------
 
-You can configure custom maven repository with a dot file in your home 
-directory :`$HOME/.jip`
+You can configure custom maven repository with a dot file, jip will search
+configurations in the following order:
+
+1. `JYTHON_HOME/.jip`, your virtual environment home
+1. `$HOME/.jip`, your home
 
 Here is an example:
 
