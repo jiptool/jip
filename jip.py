@@ -377,7 +377,8 @@ class Pom(object):
                     logger.error("[Error] can not find dependency management import: %s" % artifact)
                     sys.exit(1)
             else:
-                dependency_management_version_dict[(group_id, artifact_id)] = version
+                ## will also remember scope for scope inheritance
+                dependency_management_version_dict[(group_id, artifact_id)] = (version, scope)
 
         self.dep_mgmt = dependency_management_version_dict
         return dependency_management_version_dict
@@ -398,15 +399,18 @@ class Pom(object):
             if version is not None:
                 version = self.__resolve_placeholder(version, props)
 
-            scope = dependency.findtext("scope") or ''
-            optional = dependency.findtext("optional") or ''
+            scope = dependency.findtext("scope")
+            optional = dependency.findtext("optional")
 
             # runtime dependency
-            if (scope == '' or scope == 'compile' or scope == 'runtime') and (optional == '' or optional == 'false'):
+            if optional is None or optional == 'false':
                 if version is None:
-                    version = dep_mgmt[(group_id, artifact_id)]
-                artifact = Artifact(group_id, artifact_id, version)
-                runtime_dependencies.append(artifact)
+                    version = dep_mgmt[(group_id, artifact_id)][0]
+                if scope is None:
+                    scope = dep_mgmt[(group_id, artifact_id)][1]
+                if scope in (None, 'runtime', 'compile'):
+                    artifact = Artifact(group_id, artifact_id, version)
+                    runtime_dependencies.append(artifact)
 
         logger.debug('Find dependencies: %s'% runtime_dependencies)
         return runtime_dependencies
@@ -506,6 +510,7 @@ def install(artifact_identifier):
     artifact_to_install = Artifact(group, artifact, version)
 
     _install(artifact_to_install)
+    logger.info("[Finished] %s successfully installed" % artifact_identifier)
 
 def clean():
     """ Remove all downloaded packages """
@@ -522,6 +527,7 @@ def resolve(pomfile):
 
     dependencies = pom.get_dependencies()
     _install(*dependencies)
+    logger.info("[Finished] all dependencies resolved")
 
 def update(artifact_id):
     """ update a snapshot artifact, check for new version """
@@ -551,9 +557,10 @@ def update(artifact_id):
                 pom = Pom(pomstring)
                 dependencies = pom.get_dependencies()
                 _install(*dependencies)
-
+            logger.info('[Finished] Artifact snapshot %s updated' % artifact_id)
         else:
             logger.error('[Error] Artifact not installed: %s' % artifact)
+            sys.exit(1)
     else:
         logger.error('[Error] Can not update non-snapshot artifact')
         return
