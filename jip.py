@@ -407,7 +407,10 @@ class Pom(object):
                 if version is None:
                     version = dep_mgmt[(group_id, artifact_id)][0]
                 if scope is None:
-                    scope = dep_mgmt[(group_id, artifact_id)][1]
+                    try:
+                        scope = dep_mgmt[(group_id, artifact_id)][1]
+                    except KeyError:
+                        pass
                 if scope in (None, 'runtime', 'compile'):
                     artifact = Artifact(group_id, artifact_id, version)
                     runtime_dependencies.append(artifact)
