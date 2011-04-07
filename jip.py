@@ -144,7 +144,7 @@ class MavenFileSystemRepos(MavenRepos):
             pom_file.close()
             return data
         else:
-            logger.info('[Skipped] Pom file not found at %s' % maven_file_path)
+            logger.info('[Skipped] pom file not found at %s' % maven_file_path)
             return None
 
     def last_modified(self, artifact):
