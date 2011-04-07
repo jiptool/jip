@@ -70,7 +70,7 @@ Configuration
 You can configure custom maven repository with a dot file, jip will search
 configurations in the following order:
 
-1. `JYTHON_HOME/.jip`, your virtual environment home
+1. `$VIRTUAL_ENV/.jip`, your virtual environment home
 1. `$HOME/.jip`, your home
 
 Here is an example:
