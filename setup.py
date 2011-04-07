@@ -19,9 +19,11 @@ try:
 except ImportError:
     from distutils.core import setup
 
+from jip import JIP_VERSION as version
+
 setup(
     name="jip",
-    version="0.2.1",
+    version=version,
     author="Sun Ning",
     author_email="classicning@gmail.com",
     url="https://github.com/sunng87/jip",

@@ -2,5 +2,6 @@ build
 dist
 MANIFEST
 *.class
+*.pyc
 *.swp
 *~

@@ -28,8 +28,9 @@ from xml.etree import ElementTree
 from string import Template
 from ConfigParser import ConfigParser
 
+JIP_VERSION = '0.3dev'
 __author__ = 'Sun Ning <classicning@gmail.com>'
-__version__ = '0.2dev'
+__version__ = JIP_VERSION
 __license__ = 'GPL'
 
 logging.basicConfig(level=logging.INFO, format="\033[1m%(name)s\033[0m  %(message)s")
@@ -50,9 +51,6 @@ DEFAULT_JAVA_LIB_PATH = os.path.join(JYTHON_HOME, 'javalib')
 
 if not os.path.exists(DEFAULT_JAVA_LIB_PATH):
     os.mkdir(DEFAULT_JAVA_LIB_PATH)
-
-MAVEN_LOCAL_REPOS = ('local', os.path.expanduser('~/.m2/repository'), 'local')
-MAVEN_PUBLIC_REPOS = ('public', "http://repo1.maven.org/maven2/", 'remote')
 
 class Artifact(object):
     def __init__(self, group, artifact, version):
@@ -271,6 +269,9 @@ class MavenHttpRemoteRepos(MavenRepos):
 
         file_to_check.close()
         return hasher.hexdigest()
+
+MAVEN_LOCAL_REPOS = ('local', os.path.expanduser('~/.m2/repository'), 'local')
+MAVEN_PUBLIC_REPOS = ('public', "http://repo1.maven.org/maven2/", 'remote')
 
 def _create_repos(name, uri, repos_type):
     if repos_type == 'local':
