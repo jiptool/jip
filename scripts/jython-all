@@ -6,7 +6,9 @@ PYTHON_PATH=""
 
 for lib in $JAVA_LIBS
 do PYTHON_PATH="$PYTHON_PATH:$lib"
+   CLASSPATH="$CLASSPATH:$lib"
 done
 
-#echo $PYTHON_PATH
+export CLASSPATH
+
 $JYTHON_CMD -Dpython.path=$PYTHON_PATH "$@"
