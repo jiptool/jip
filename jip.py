@@ -59,6 +59,7 @@ class Artifact(object):
         self.version = version
         self.timestamp = None
         self.build_number = None
+        self.exclusions = []
 
     def to_jip_name(self, pattern="$artifact-$version.$ext", ext="jar"):
         template = Template(pattern)
@@ -399,6 +400,10 @@ class Pom(object):
             version = dependency.findtext("version")
             if version is not None:
                 version = self.__resolve_placeholder(version, props)
+            
+            
+            exclusions = [exclusion.findtext("artifactId") for exclusion in
+                         dependency.findall("exclusions/exclusion")]
 
             scope = dependency.findtext("scope")
             optional = dependency.findtext("optional")
@@ -413,6 +418,7 @@ class Pom(object):
                         scope = dep_mgmt[(group_id, artifact_id)][1]
                 if scope in (None, 'runtime', 'compile'):
                     artifact = Artifact(group_id, artifact_id, version)
+                    artifact.exclusions = exclusions
                     runtime_dependencies.append(artifact)
 
         logger.debug('Find dependencies: %s'% runtime_dependencies)
@@ -500,7 +506,10 @@ def _install(*artifacts):
 
                 pom_obj = Pom(pom)
                 more_dependencies = pom_obj.get_dependencies()
-                for d in more_dependencies: dependency_set.add(d)
+                for d in more_dependencies:
+                    d.exclusions = artifact.exclusions
+                    if d.artifact not in artifact.exclusions:
+                        dependency_set.add(d)
                 break
         
         if not found:
@@ -519,7 +528,7 @@ def clean():
     """ Remove all downloaded packages """
     logger.info("[Deleting] remove java libs in %s" % DEFAULT_JAVA_LIB_PATH)
     shutil.rmtree(DEFAULT_JAVA_LIB_PATH)
-    logger.info("[Finished] all downloaded file erased")
+    logger.info("[Finished] all downloaded files erased")
 
 ## another resolve task, allow jip to resovle dependencies from a pom file.
 def resolve(pomfile):
