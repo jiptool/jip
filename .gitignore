@@ -5,3 +5,4 @@ MANIFEST
 *.pyc
 *.swp
 *~
+jip.egg-info

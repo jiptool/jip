@@ -89,6 +89,15 @@ class Artifact(object):
     def is_snapshot(self):
         return self.version.find('SNAPSHOT') > 0
 
+    def is_same_artifact(self, other):
+        if isinstance(other, Artifact):
+            ## need to support wildcard
+            group_match = True if self.group == '*' or other.group == '*' else self.group == other.group
+            artif_match = True if self.artifact == '*' or other.artifact == '*' else self.artifact == other.artifact
+            return group_match and artif_match
+        else:
+            return False
+
 class MavenRepos(object):
     def __init__(self, name, uri):
         self.name = name
@@ -401,12 +410,17 @@ class Pom(object):
             if version is not None:
                 version = self.__resolve_placeholder(version, props)
             
-            
-            exclusions = [exclusion.findtext("artifactId") for exclusion in
-                         dependency.findall("exclusions/exclusion")]
-
             scope = dependency.findtext("scope")
             optional = dependency.findtext("optional")
+
+            ### dependency exclusion           
+            ### there is no `version` in a exclusion definition
+            exclusions = []
+            for exclusion in dependency.findall("exclusions/exclusion"):
+                groupId = exclusion.findtext("groupId")
+                artifactId = exclusion.findtext("artifactId")
+                excluded_artifact = Artifact(groupId, artifactId, None)
+                exclusions.append(excluded_artifact)
 
             # runtime dependency
             if optional is None or optional == 'false':
@@ -488,7 +502,8 @@ def _install(*artifacts):
     while len(dependency_set) > 0:
         artifact = dependency_set.pop()
 
-        if artifact in installed_set:
+        ## to prevent multiple version installed
+        if any(map(lambda a: a.is_same_artifact(artifact), installed_set)):
             continue
 
         found = False
@@ -508,7 +523,7 @@ def _install(*artifacts):
                 more_dependencies = pom_obj.get_dependencies()
                 for d in more_dependencies:
                     d.exclusions.extend(artifact.exclusions)
-                    if d.artifact not in artifact.exclusions:
+                    if not any(map(lambda e: e.is_same_artifact(d), artifact.exclusions)):
                         dependency_set.add(d)
                 break
         
