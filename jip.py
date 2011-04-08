@@ -507,7 +507,7 @@ def _install(*artifacts):
                 pom_obj = Pom(pom)
                 more_dependencies = pom_obj.get_dependencies()
                 for d in more_dependencies:
-                    d.exclusions = artifact.exclusions
+                    d.exclusions.extend(artifact.exclusions)
                     if d.artifact not in artifact.exclusions:
                         dependency_set.add(d)
                 break
