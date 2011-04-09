@@ -557,7 +557,7 @@ def resolve(pomfile):
     logger.info("[Finished] all dependencies resolved")
 
 def update(artifact_id):
-    """ update a snapshot artifact, check for new version """
+    """ Update a snapshot artifact, check for new version """
     group, artifact, version = artifact_id.split(":")
     artifact = Artifact(group, artifact, version)
 
@@ -592,12 +592,38 @@ def update(artifact_id):
         logger.error('[Error] Can not update non-snapshot artifact')
         return
 
+def version():
+    """ Display jip version """
+    logger.info('[Version] jip %s, jython %s' % (JIP_VERSION, sys.version))
+
+def install_dependencies(artifact_id):
+    """ Install dependencies for given artifact, without download itself """
+    group, artifact, version = artifact_id.split(":")
+    artifact = Artifact(group, artifact, version)
+
+    found = False
+    for repos in MAVEN_REPOS:
+        pom_raw = repos.download_pom(artifact)
+        ## find the artifact
+        if pom_raw is not None:
+            pom = Pom(pom_raw)
+            found = True
+            _install(*pom.get_dependencies())
+            break
+
+    if not found:
+        logger.error('[Error] artifact %s not found in any repository' % artifact_id)
+        sys.exit(1)
+    else:
+        logger.info('[Finished] finished resovle dependencies for %s ' % artifact_id)
 
 commands = {
         "install": install,
         "clean": clean,
         "resolve": resolve,
         "update": update,
+        "version": version,
+        "install-dependencies": install_dependencies,
         }
 
 def parse_cmd(argus):

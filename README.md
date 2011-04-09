@@ -49,6 +49,15 @@ maintainable than typing install command one by one:
 
     jip resolve pom.xml
 
+### Resolve dependencies for an artifact ###
+With jip, you can resolve and download all dependencies of an artifact,
+without grab the artifact itself (whenever the artifact is downloadable, for example,
+just a plain pom). This is especially useful when you are about to setup an environment
+for an artifact. Also, java dependencies for a jython package is defined in
+this way.
+
+    jip install-dependencies info.sunng.gefr:gefr:0.2-SNAPSHOT
+
 ### Update snapshot artifact ###
 
 You can use update command to find and download a new deployed snapshot:
