@@ -28,7 +28,7 @@ from xml.etree import ElementTree
 from string import Template
 from ConfigParser import ConfigParser
 
-JIP_VERSION = '0.3dev'
+JIP_VERSION = '0.3'
 __author__ = 'Sun Ning <classicning@gmail.com>'
 __version__ = JIP_VERSION
 __license__ = 'GPL'
