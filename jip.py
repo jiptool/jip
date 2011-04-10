@@ -37,7 +37,6 @@ logging.basicConfig(level=logging.INFO, format="\033[1m%(name)s\033[0m  %(messag
 logger = logging.getLogger('jip')
 
 ## globals
-MAVEN_REPOS = []
 DEFAULT_JAVA_LIB_PATH = ''
 JYTHON_HOME = ''
 
@@ -61,50 +60,57 @@ def init_path():
     if not os.path.exists(DEFAULT_JAVA_LIB_PATH):
         os.mkdir(DEFAULT_JAVA_LIB_PATH)
 
-def add_repos(name, uri, repos_type, order=-1):
-    if repos_type == 'local':
-        repo = MavenFileSystemRepos(name, uri)
-    elif repos_type == 'remote':
-        repo = MavenHttpRemoteRepos(name, uri)
-    else:
-        logger.warn('[Error] Unknown repository type.')
-        sys.exit(1)
-
-    if repo not in MAVEN_REPOS:
-        MAVEN_REPOS.insert(order, repo)
-
-def _load_config():
-    config_file_path = os.path.join(JYTHON_HOME, '.jip')
-    if not os.path.exists(config_file_path):
-        config_file_path = os.path.expanduser('~/.jip')
-    if os.path.exists(config_file_path):
-        config = ConfigParser()
-        config.read(config_file_path)
-
-        repos = []
-        ## only loop section starts with "repos:"
-        repos_sections = filter(lambda x:x.startswith("repos:"), config.sections())
-        for section in repos_sections:
-            name = section.split(':')[1]
-            uri = config.get(section, "uri")
-            rtype = config.get(section, "type")
-            repos.append((name, uri, rtype))
-        return repos
-    else:
-        return None
-
-def init_repos():
+class RepositoryManager(object):
     MAVEN_LOCAL_REPOS = ('local', os.path.expanduser('~/.m2/repository'), 'local')
     MAVEN_PUBLIC_REPOS = ('public', "http://repo1.maven.org/maven2/", 'remote')
-    for repo in (_load_config() or [MAVEN_LOCAL_REPOS, MAVEN_PUBLIC_REPOS]):
-        ## create repos in order
-        name, uri, rtype = repo
-        add_repos(name, uri, rtype, order=len(MAVEN_REPOS))
+    def __init__(self):
+        self.repos = []
 
+    def add_repos(self, name, uri, repos_type, order=-1):
+        if repos_type == 'local':
+            repo = MavenFileSystemRepos(name, uri)
+        elif repos_type == 'remote':
+            repo = MavenHttpRemoteRepos(name, uri)
+        else:
+            logger.warn('[Error] Unknown repository type.')
+            sys.exit(1)
+
+        if repo not in self.repos:
+            self.repos.insert(order, repo)
+
+    def _load_config(self):
+        config_file_path = os.path.join(JYTHON_HOME, '.jip')
+        if not os.path.exists(config_file_path):
+            config_file_path = os.path.expanduser('~/.jip')
+        if os.path.exists(config_file_path):
+            config = ConfigParser()
+            config.read(config_file_path)
+
+            repos = []
+            ## only loop section starts with "repos:"
+            repos_sections = filter(lambda x:x.startswith("repos:"), config.sections())
+            for section in repos_sections:
+                name = section.split(':')[1]
+                uri = config.get(section, "uri")
+                rtype = config.get(section, "type")
+                repos.append((name, uri, rtype))
+            return repos
+        else:
+            return None
+
+    def init_repos(self):
+        for repo in (self._load_config() or [self.MAVEN_LOCAL_REPOS, self.MAVEN_PUBLIC_REPOS]):
+            ## create repos in order
+            name, uri, rtype = repo
+            self.add_repos(name, uri, rtype, order=len(self.repos))
+
+## globals
+MAVEN_REPOS = RepositoryManager()
+    
 def init(func):
     def wrapper(*args, **kwargs):
         init_path()
-        init_repos()
+        MAVEN_REPOS.init_repos()
         func(*args, **kwargs)
     return wrapper
 
@@ -373,7 +379,7 @@ class Pom(object):
 
             artifact = Artifact(parent_group_id, parent_artifact_id, parent_version_id)
             global MAVEN_REPOS
-            for repos in MAVEN_REPOS:
+            for repos in MAVEN_REPOS.repos:
                 parent_pom = repos.download_pom(artifact)
                 if parent_pom is not None:
                     break
@@ -409,7 +415,7 @@ class Pom(object):
             if scope is not None and scope == 'import':
                 artifact = Artifact(group_id, artifact_id, version)
                 global MAVEN_REPOS
-                for repos in MAVEN_REPOS:
+                for repos in MAVEN_REPOS.repos:
                     import_pom = repos.download_pom(artifact)
                     if import_pom is not None:
                         break
@@ -519,6 +525,17 @@ class Pom(object):
                 return matchobj.group(0)
        return re.sub(r'\$\{(.*?)\}', subfunc, text)
 
+    def get_repositories(self):
+        eletree = self.get_element_tree()
+
+        repositories = eletree.findall("repositories/repository")
+        repos = []
+        for repository in repositories:
+            name = repository.findtext("id")
+            uri = repository.findtext("url")
+            repos.append((name, uri, "remote"))
+        return repos
+
 def _install(*artifacts):
     global MAVEN_REPOS    
     ## ready set contains artifact jip file names
@@ -539,7 +556,7 @@ def _install(*artifacts):
             continue
 
         found = False
-        for repos in MAVEN_REPOS:
+        for repos in MAVEN_REPOS.repos:
 
             pom = repos.download_pom(artifact)
 
@@ -586,6 +603,10 @@ def resolve(pomfile):
     pomfile = open(pomfile, 'r')
     pomstring = pomfile.read()
     pom = Pom(pomstring)
+    ## custom defined repositories
+    repositories = pom.get_repositories()
+    for repos in repositories:
+        MAVEN_REPOS.add_repos(*repos)
 
     dependencies = pom.get_dependencies()
     _install(*dependencies)
@@ -605,7 +626,7 @@ def update(artifact_id):
 
             ## find the repository contains the new release
             selected_repos = None
-            for repos in MAVEN_REPOS:
+            for repos in MAVEN_REPOS.repos:
                 ts = repos.last_modified(artifact)
                 if ts is not None and ts > lm :
                     lm = ts
@@ -640,7 +661,7 @@ def install_dependencies(artifact_id):
     artifact = Artifact(group, artifact, version)
 
     found = False
-    for repos in MAVEN_REPOS:
+    for repos in MAVEN_REPOS.repos:
         pom_raw = repos.download_pom(artifact)
         ## find the artifact
         if pom_raw is not None:
