@@ -28,7 +28,7 @@ from xml.etree import ElementTree
 from string import Template
 from ConfigParser import ConfigParser
 
-JIP_VERSION = '0.3'
+JIP_VERSION = '0.3.1'
 __author__ = 'Sun Ning <classicning@gmail.com>'
 __version__ = JIP_VERSION
 __license__ = 'GPL'
@@ -36,21 +36,77 @@ __license__ = 'GPL'
 logging.basicConfig(level=logging.INFO, format="\033[1m%(name)s\033[0m  %(message)s")
 logger = logging.getLogger('jip')
 
-## check virtual environ and warn user
-if 'VIRTUAL_ENV' in os.environ:
-    JYTHON_HOME = os.environ['VIRTUAL_ENV']
-else:
-    logger.warn('Warning: no virtualenv detected, remember to activate it.')
-    if 'JYTHON_HOME' in os.environ:
-        JYTHON_HOME = os.environ['JYTHON_HOME']
-    else:
-        ## fail back to use current directory
-        JYTHON_HOME = os.getcwd()
-        
-DEFAULT_JAVA_LIB_PATH = os.path.join(JYTHON_HOME, 'javalib')
+## globals
+MAVEN_REPOS = []
+DEFAULT_JAVA_LIB_PATH = ''
+JYTHON_HOME = ''
 
-if not os.path.exists(DEFAULT_JAVA_LIB_PATH):
-    os.mkdir(DEFAULT_JAVA_LIB_PATH)
+## check virtual environ and warn user
+def init_path():
+    global DEFAULT_JAVA_LIB_PATH
+    global JYTHON_HOME
+
+    if 'VIRTUAL_ENV' in os.environ:
+        JYTHON_HOME = os.environ['VIRTUAL_ENV']
+    else:
+        logger.warn('Warning: no virtualenv detected, remember to activate it.')
+        if 'JYTHON_HOME' in os.environ:
+            JYTHON_HOME = os.environ['JYTHON_HOME']
+        else:
+            ## fail back to use current directory
+            JYTHON_HOME = os.getcwd()
+        
+    DEFAULT_JAVA_LIB_PATH = os.path.join(JYTHON_HOME, 'javalib')
+
+    if not os.path.exists(DEFAULT_JAVA_LIB_PATH):
+        os.mkdir(DEFAULT_JAVA_LIB_PATH)
+
+def add_repos(name, uri, repos_type, order=-1):
+    if repos_type == 'local':
+        repo = MavenFileSystemRepos(name, uri)
+    elif repos_type == 'remote':
+        repo = MavenHttpRemoteRepos(name, uri)
+    else:
+        logger.warn('[Error] Unknown repository type.')
+        sys.exit(1)
+
+    if repo not in MAVEN_REPOS:
+        MAVEN_REPOS.insert(order, repo)
+
+def _load_config():
+    config_file_path = os.path.join(JYTHON_HOME, '.jip')
+    if not os.path.exists(config_file_path):
+        config_file_path = os.path.expanduser('~/.jip')
+    if os.path.exists(config_file_path):
+        config = ConfigParser()
+        config.read(config_file_path)
+
+        repos = []
+        ## only loop section starts with "repos:"
+        repos_sections = filter(lambda x:x.startswith("repos:"), config.sections())
+        for section in repos_sections:
+            name = section.split(':')[1]
+            uri = config.get(section, "uri")
+            rtype = config.get(section, "type")
+            repos.append((name, uri, rtype))
+        return repos
+    else:
+        return None
+
+def init_repos():
+    MAVEN_LOCAL_REPOS = ('local', os.path.expanduser('~/.m2/repository'), 'local')
+    MAVEN_PUBLIC_REPOS = ('public', "http://repo1.maven.org/maven2/", 'remote')
+    for repo in (_load_config() or [MAVEN_LOCAL_REPOS, MAVEN_PUBLIC_REPOS]):
+        ## create repos in order
+        name, uri, rtype = repo
+        add_repos(name, uri, rtype, order=len(MAVEN_REPOS))
+
+def init(func):
+    def wrapper(*args, **kwargs):
+        init_path()
+        init_repos()
+        func(*args, **kwargs)
+    return wrapper
 
 class Artifact(object):
     def __init__(self, group, artifact, version):
@@ -103,10 +159,16 @@ class MavenRepos(object):
         self.name = name
         self.uri = uri
 
+    def __eq__(self, other):
+        if isinstance(other, MavenRepos):
+            return self.uri == other.uri
+        else:
+            return False
+
     def get_artifact_uri(self, artifact, ext):
         pass
 
-    def download_jar(self, artifact, local_path=DEFAULT_JAVA_LIB_PATH):
+    def download_jar(self, artifact, local_path=None):
         """ download or copy file to local path, raise exception when failed """
         pass
 
@@ -131,7 +193,8 @@ class MavenFileSystemRepos(MavenRepos):
         maven_file_path = os.path.join(self.uri,maven_name)
         return maven_file_path
 
-    def download_jar(self, artifact, local_path=DEFAULT_JAVA_LIB_PATH):
+    def download_jar(self, artifact, local_path=None):
+        local_path = local_path or DEFAULT_JAVA_LIB_PATH
         maven_file_path = self.get_artifact_uri(artifact, 'jar')
         logger.info("[Checking] jar package from %s" % self.name)
         if os.path.exists(maven_file_path):
@@ -168,7 +231,8 @@ class MavenHttpRemoteRepos(MavenRepos):
         MavenRepos.__init__(self, name, uri)
         self.pom_cache = {}
 
-    def download_jar(self, artifact, local_path=DEFAULT_JAVA_LIB_PATH):
+    def download_jar(self, artifact, local_path=None):
+        local_path = local_path or DEFAULT_JAVA_LIB_PATH
         maven_path = self.get_artifact_uri(artifact, 'jar')
         logger.info('[Downloading] jar from %s' % maven_path)
         f = urllib2.urlopen(maven_path)
@@ -280,39 +344,7 @@ class MavenHttpRemoteRepos(MavenRepos):
         file_to_check.close()
         return hasher.hexdigest()
 
-MAVEN_LOCAL_REPOS = ('local', os.path.expanduser('~/.m2/repository'), 'local')
-MAVEN_PUBLIC_REPOS = ('public', "http://repo1.maven.org/maven2/", 'remote')
-
-def _create_repos(name, uri, repos_type):
-    if repos_type == 'local':
-        return MavenFileSystemRepos(name, uri)
-    if repos_type == 'remote':
-        return MavenHttpRemoteRepos(name, uri)
-
-def _load_config():
-    config_file_path = os.path.join(JYTHON_HOME, '.jip')
-    if not os.path.exists(config_file_path):
-        config_file_path = os.path.expanduser('~/.jip')
-    if os.path.exists(config_file_path):
-        config = ConfigParser()
-        config.read(config_file_path)
-
-        repos = []
-        ## only loop section starts with "repos:"
-        repos_sections = filter(lambda x:x.startswith("repos:"), config.sections())
-        for section in repos_sections:
-            name = section.split(':')[1]
-            uri = config.get(section, "uri")
-            rtype = config.get(section, "type")
-            repos.append((name, uri, rtype))
-        return repos
-    else:
-        return None
-
-## allow custom repository configuration from a config file
-MAVEN_REPOS = map(lambda x: _create_repos(*x), 
-        _load_config() or [MAVEN_LOCAL_REPOS, MAVEN_PUBLIC_REPOS])
-
+    
 class Pom(object):
     def __init__(self, pom_string):
         self.pom_string = pom_string
@@ -531,6 +563,7 @@ def _install(*artifacts):
             logger.error("[Error] Artifact not found: %s", artifact)
             sys.exit(1)
 
+@init
 def install(artifact_identifier):
     """Install a package with maven coordinate "groupId:artifactId:version" """
     group, artifact, version = artifact_identifier.split(":")
@@ -539,6 +572,7 @@ def install(artifact_identifier):
     _install(artifact_to_install)
     logger.info("[Finished] %s successfully installed" % artifact_identifier)
 
+@init
 def clean():
     """ Remove all downloaded packages """
     logger.info("[Deleting] remove java libs in %s" % DEFAULT_JAVA_LIB_PATH)
@@ -546,6 +580,7 @@ def clean():
     logger.info("[Finished] all downloaded files erased")
 
 ## another resolve task, allow jip to resovle dependencies from a pom file.
+@init
 def resolve(pomfile):
     """ Resolve and download dependencies in pom file """
     pomfile = open(pomfile, 'r')
@@ -556,6 +591,7 @@ def resolve(pomfile):
     _install(*dependencies)
     logger.info("[Finished] all dependencies resolved")
 
+@init
 def update(artifact_id):
     """ Update a snapshot artifact, check for new version """
     group, artifact, version = artifact_id.split(":")
@@ -592,10 +628,12 @@ def update(artifact_id):
         logger.error('[Error] Can not update non-snapshot artifact')
         return
 
+@init
 def version():
     """ Display jip version """
     logger.info('[Version] jip %s, jython %s' % (JIP_VERSION, sys.version))
 
+@init
 def install_dependencies(artifact_id):
     """ Install dependencies for given artifact, without download itself """
     group, artifact, version = artifact_id.split(":")
@@ -650,3 +688,4 @@ def main():
         
 if __name__ == "__main__":
     main()
+
