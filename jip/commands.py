@@ -170,5 +170,5 @@ def install_dependencies(artifact_id):
         logger.error('[Error] artifact %s not found in any repository' % artifact_id)
         sys.exit(1)
     else:
-        logger.info('[Finished] finished resovle dependencies for %s ' % artifact_id)
+        logger.info('[Finished] finished resolve dependencies for %s ' % artifact_id)
 
