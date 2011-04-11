@@ -15,6 +15,30 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from jip.main import main
+import sys
 
-main()
+from . import logger
+from jip.commands import commands
+
+def parse_cmd(argus):
+    if len(argus) > 0:
+        cmd = argus[0]
+        values = argus[1:]
+        return (cmd, values)
+    else:
+        return (None, None)
+
+def print_help():
+    print "Available commands:"
+    for name, func in commands.items():
+        print "\t%s\t\t%s" % (name, func.__doc__)
+
+def main():
+    logger.debug("sys args %s" % sys.argv)
+    args = sys.argv[1:] 
+    cmd, values = parse_cmd(args)
+    if cmd in commands:
+        commands[cmd](*values)
+    else:
+        print_help()
+        

@@ -1,3 +1,4 @@
+#! /usr/bin/env jython
 # Copyright (C) 2011 Sun Ning<classicning@gmail.com>
 
 # This program is free software: you can redistribute it and/or modify
@@ -16,9 +17,7 @@
 
 import os
 import sys
-import shutil
 import urllib2
-import logging
 import re
 import stat
 import locale
@@ -28,37 +27,7 @@ from xml.etree import ElementTree
 from string import Template
 from ConfigParser import ConfigParser
 
-JIP_VERSION = '0.3.1'
-__author__ = 'Sun Ning <classicning@gmail.com>'
-__version__ = JIP_VERSION
-__license__ = 'GPL'
-
-logging.basicConfig(level=logging.INFO, format="\033[1m%(name)s\033[0m  %(message)s")
-logger = logging.getLogger('jip')
-
-## globals
-DEFAULT_JAVA_LIB_PATH = ''
-JYTHON_HOME = ''
-
-## check virtual environ and warn user
-def init_path():
-    global DEFAULT_JAVA_LIB_PATH
-    global JYTHON_HOME
-
-    if 'VIRTUAL_ENV' in os.environ:
-        JYTHON_HOME = os.environ['VIRTUAL_ENV']
-    else:
-        logger.warn('Warning: no virtualenv detected, remember to activate it.')
-        if 'JYTHON_HOME' in os.environ:
-            JYTHON_HOME = os.environ['JYTHON_HOME']
-        else:
-            ## fail back to use current directory
-            JYTHON_HOME = os.getcwd()
-        
-    DEFAULT_JAVA_LIB_PATH = os.path.join(JYTHON_HOME, 'javalib')
-
-    if not os.path.exists(DEFAULT_JAVA_LIB_PATH):
-        os.mkdir(DEFAULT_JAVA_LIB_PATH)
+from . import logger, get_virtual_home
 
 class RepositoryManager(object):
     MAVEN_LOCAL_REPOS = ('local', os.path.expanduser('~/.m2/repository'), 'local')
@@ -79,7 +48,7 @@ class RepositoryManager(object):
             self.repos.insert(order, repo)
 
     def _load_config(self):
-        config_file_path = os.path.join(JYTHON_HOME, '.jip')
+        config_file_path = os.path.join(get_virtual_home(), '.jip')
         if not os.path.exists(config_file_path):
             config_file_path = os.path.expanduser('~/.jip')
         if os.path.exists(config_file_path):
@@ -107,12 +76,6 @@ class RepositoryManager(object):
 ## globals
 repos_manager = RepositoryManager()
     
-def init(func):
-    def wrapper(*args, **kwargs):
-        init_path()
-        repos_manager.init_repos()
-        func(*args, **kwargs)
-    return wrapper
 
 class Artifact(object):
     def __init__(self, group, artifact, version):
@@ -200,7 +163,6 @@ class MavenFileSystemRepos(MavenRepos):
         return maven_file_path
 
     def download_jar(self, artifact, local_path=None):
-        local_path = local_path or DEFAULT_JAVA_LIB_PATH
         maven_file_path = self.get_artifact_uri(artifact, 'jar')
         logger.info("[Checking] jar package from %s" % self.name)
         if os.path.exists(maven_file_path):
@@ -238,7 +200,6 @@ class MavenHttpRemoteRepos(MavenRepos):
         self.pom_cache = {}
 
     def download_jar(self, artifact, local_path=None):
-        local_path = local_path or DEFAULT_JAVA_LIB_PATH
         maven_path = self.get_artifact_uri(artifact, 'jar')
         logger.info('[Downloading] jar from %s' % maven_path)
         f = urllib2.urlopen(maven_path)
@@ -535,178 +496,3 @@ class Pom(object):
             uri = repository.findtext("url")
             repos.append((name, uri, "remote"))
         return repos
-
-def _install(*artifacts):
-    global repos_manager    
-    ## ready set contains artifact jip file names
-    ready_set = os.listdir(DEFAULT_JAVA_LIB_PATH)
-    
-    ## dependency_set and installed_set contain artifact objects
-    dependency_set = set()
-    installed_set = set()
-
-    for a in artifacts:
-        dependency_set.add(a)
-
-    while len(dependency_set) > 0:
-        artifact = dependency_set.pop()
-
-        ## to prevent multiple version installed
-        if any(map(lambda a: a.is_same_artifact(artifact), installed_set)):
-            continue
-
-        found = False
-        for repos in repos_manager.repos:
-
-            pom = repos.download_pom(artifact)
-
-            ## find the artifact
-            if pom is not None:
-                if not artifact.to_jip_name() in ready_set:
-                    repos.download_jar(artifact)
-                    installed_set.add(artifact)
-                    ready_set.append(artifact.to_jip_name())
-                found = True
-
-                pom_obj = Pom(pom)
-                more_dependencies = pom_obj.get_dependencies()
-                for d in more_dependencies:
-                    d.exclusions.extend(artifact.exclusions)
-                    if not any(map(lambda e: e.is_same_artifact(d), artifact.exclusions)):
-                        dependency_set.add(d)
-                break
-        
-        if not found:
-            logger.error("[Error] Artifact not found: %s", artifact)
-            sys.exit(1)
-
-@init
-def install(artifact_identifier):
-    """Install a package with maven coordinate "groupId:artifactId:version" """
-    group, artifact, version = artifact_identifier.split(":")
-    artifact_to_install = Artifact(group, artifact, version)
-
-    _install(artifact_to_install)
-    logger.info("[Finished] %s successfully installed" % artifact_identifier)
-
-@init
-def clean():
-    """ Remove all downloaded packages """
-    logger.info("[Deleting] remove java libs in %s" % DEFAULT_JAVA_LIB_PATH)
-    shutil.rmtree(DEFAULT_JAVA_LIB_PATH)
-    logger.info("[Finished] all downloaded files erased")
-
-## another resolve task, allow jip to resovle dependencies from a pom file.
-@init
-def resolve(pomfile):
-    """ Resolve and download dependencies in pom file """
-    pomfile = open(pomfile, 'r')
-    pomstring = pomfile.read()
-    pom = Pom(pomstring)
-    ## custom defined repositories
-    repositories = pom.get_repositories()
-    for repos in repositories:
-        repos_manager.add_repos(*repos)
-
-    dependencies = pom.get_dependencies()
-    _install(*dependencies)
-    logger.info("[Finished] all dependencies resolved")
-
-@init
-def update(artifact_id):
-    """ Update a snapshot artifact, check for new version """
-    group, artifact, version = artifact_id.split(":")
-    artifact = Artifact(group, artifact, version)
-
-    global repos_manager    
-    if artifact.is_snapshot():
-        installed_file = os.path.join(DEFAULT_JAVA_LIB_PATH, artifact.to_jip_name())
-        if os.path.exists(installed_file):
-            lm = os.stat(installed_file)[stat.ST_MTIME]
-
-            ## find the repository contains the new release
-            selected_repos = None
-            for repos in repos_manager.repos:
-                ts = repos.last_modified(artifact)
-                if ts is not None and ts > lm :
-                    lm = ts
-                    selected_repos = repos
-            
-            if selected_repos is not None:
-                ## download new jar
-                selected_repos.download_jar(artifact)
-
-                ## try to update dependencies
-                pomstring = selected_repos.download_pom(artifact)
-                pom = Pom(pomstring)
-                dependencies = pom.get_dependencies()
-                _install(*dependencies)
-            logger.info('[Finished] Artifact snapshot %s updated' % artifact_id)
-        else:
-            logger.error('[Error] Artifact not installed: %s' % artifact)
-            sys.exit(1)
-    else:
-        logger.error('[Error] Can not update non-snapshot artifact')
-        return
-
-@init
-def version():
-    """ Display jip version """
-    logger.info('[Version] jip %s, jython %s' % (JIP_VERSION, sys.version))
-
-@init
-def install_dependencies(artifact_id):
-    """ Install dependencies for given artifact, without download itself """
-    group, artifact, version = artifact_id.split(":")
-    artifact = Artifact(group, artifact, version)
-
-    found = False
-    for repos in repos_manager.repos:
-        pom_raw = repos.download_pom(artifact)
-        ## find the artifact
-        if pom_raw is not None:
-            pom = Pom(pom_raw)
-            found = True
-            _install(*pom.get_dependencies())
-            break
-
-    if not found:
-        logger.error('[Error] artifact %s not found in any repository' % artifact_id)
-        sys.exit(1)
-    else:
-        logger.info('[Finished] finished resovle dependencies for %s ' % artifact_id)
-
-commands = {
-        "install": install,
-        "clean": clean,
-        "resolve": resolve,
-        "update": update,
-        "version": version,
-        "install-dependencies": install_dependencies,
-        }
-
-def parse_cmd(argus):
-    if len(argus) > 0:
-        cmd = argus[0]
-        values = argus[1:]
-        return (cmd, values)
-    else:
-        return (None, None)
-
-def print_help():
-    print "Available commands:"
-    for name, func in commands.items():
-        print "\t%s\t\t%s" % (name, func.__doc__)
-
-def main():
-    logger.debug("sys args %s" % sys.argv)
-    args = sys.argv[1:] 
-    cmd, values = parse_cmd(args)
-    if cmd in commands:
-        commands[cmd](*values)
-    else:
-        print_help()
-        
-if __name__ == "__main__":
-    main()
-
