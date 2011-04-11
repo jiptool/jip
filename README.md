@@ -100,11 +100,72 @@ Be careful that the .jip file will overwrite default settings,
 so you must include default local and central repository explicitly. 
 jip will skip repositories once it finds package matches the maven coordinator.
 
+From 0.4, you can also define repositories in pom.xml if you use the `resolve` 
+command. jip will add these custom repositories with highest priority.
+
+Distribution helpers
+--------------------
+
+From 0.4, you can use jip in your setup.py to simplify jython source package 
+distribution. Create pom.xml in the same directory with setup.py. Fill it with 
+your Java dependencies in standard maven way. You can also define custom repositories
+in pom. Here is an example:
+
+    <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>info.sunng.gefr</groupId>
+        <artifactId>gefr</artifactId>
+        <packaging>pom</packaging>
+        <version>0.2-SNAPSHOT</version>
+        <name>gefr</name>
+        <url>https://bitbucket.org/sunng/gefr</url>
+    
+        <dependencies>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>1.6.1</version>
+            </dependency>
+    
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
+                <version>1.6.1</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>info.sunng.soldat</groupId>
+                <artifactId>soldat</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+    
+            <dependency>
+                <groupId>org.apache.mina</groupId>
+                <artifactId>mina-core</artifactId>
+                <version>2.0.2</version>
+            </dependency>
+        </dependencies>
+    
+        <repositories>
+            <repository>
+                <id>sonatype-oss-sonatype</id>
+                <url>http://oss.sonatype.org/content/repositories/snapshots/</url>
+            </repository>
+        </repositories>
+    </project>
+
+And in your setup.py, use the jip setup wrapper instead of the one provided by 
+setuptools or distutils
+
+    from jip.dist import setup
+    
 
 Links
 -----
 
-* [http://sunng.info/blog/jip-0-1](http://sunng.info/blog/jip-0-1/ "a more comprehensive guide")
+* **Obsolete** [http://sunng.info/blog/jip-0-1](http://sunng.info/blog/jip-0-1/ "a more comprehensive guide")
+* [http://github.com/sunng87/jip](http://github.com/sunng87/jip "Github project home")
 * [http://pypi.python.org/pypi/jip](http://pypi.python.org/pypi/jip "Python cheese shop")
 
 
