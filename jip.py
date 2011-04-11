@@ -105,12 +105,12 @@ class RepositoryManager(object):
             self.add_repos(name, uri, rtype, order=len(self.repos))
 
 ## globals
-MAVEN_REPOS = RepositoryManager()
+repos_manager = RepositoryManager()
     
 def init(func):
     def wrapper(*args, **kwargs):
         init_path()
-        MAVEN_REPOS.init_repos()
+        repos_manager.init_repos()
         func(*args, **kwargs)
     return wrapper
 
@@ -378,8 +378,8 @@ class Pom(object):
             parent_version_id = parent.findtext("version")
 
             artifact = Artifact(parent_group_id, parent_artifact_id, parent_version_id)
-            global MAVEN_REPOS
-            for repos in MAVEN_REPOS.repos:
+            global repos_manager
+            for repos in repos_manager.repos:
                 parent_pom = repos.download_pom(artifact)
                 if parent_pom is not None:
                     break
@@ -414,8 +414,8 @@ class Pom(object):
             scope = dependency.findtext("scope")
             if scope is not None and scope == 'import':
                 artifact = Artifact(group_id, artifact_id, version)
-                global MAVEN_REPOS
-                for repos in MAVEN_REPOS.repos:
+                global repos_manager
+                for repos in repos_manager.repos:
                     import_pom = repos.download_pom(artifact)
                     if import_pom is not None:
                         break
@@ -537,7 +537,7 @@ class Pom(object):
         return repos
 
 def _install(*artifacts):
-    global MAVEN_REPOS    
+    global repos_manager    
     ## ready set contains artifact jip file names
     ready_set = os.listdir(DEFAULT_JAVA_LIB_PATH)
     
@@ -556,7 +556,7 @@ def _install(*artifacts):
             continue
 
         found = False
-        for repos in MAVEN_REPOS.repos:
+        for repos in repos_manager.repos:
 
             pom = repos.download_pom(artifact)
 
@@ -606,7 +606,7 @@ def resolve(pomfile):
     ## custom defined repositories
     repositories = pom.get_repositories()
     for repos in repositories:
-        MAVEN_REPOS.add_repos(*repos)
+        repos_manager.add_repos(*repos)
 
     dependencies = pom.get_dependencies()
     _install(*dependencies)
@@ -618,7 +618,7 @@ def update(artifact_id):
     group, artifact, version = artifact_id.split(":")
     artifact = Artifact(group, artifact, version)
 
-    global MAVEN_REPOS    
+    global repos_manager    
     if artifact.is_snapshot():
         installed_file = os.path.join(DEFAULT_JAVA_LIB_PATH, artifact.to_jip_name())
         if os.path.exists(installed_file):
@@ -626,7 +626,7 @@ def update(artifact_id):
 
             ## find the repository contains the new release
             selected_repos = None
-            for repos in MAVEN_REPOS.repos:
+            for repos in repos_manager.repos:
                 ts = repos.last_modified(artifact)
                 if ts is not None and ts > lm :
                     lm = ts
@@ -661,7 +661,7 @@ def install_dependencies(artifact_id):
     artifact = Artifact(group, artifact, version)
 
     found = False
-    for repos in MAVEN_REPOS.repos:
+    for repos in repos_manager.repos:
         pom_raw = repos.download_pom(artifact)
         ## find the artifact
         if pom_raw is not None:
