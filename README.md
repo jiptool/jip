@@ -7,7 +7,7 @@ download jars for your jython environment.
 License
 -------
 
-jip itself is distributed under the license of GNU General Public License, Version 3.
+jip itself is distributed according to **MIT License** .
 
 Install
 -------
