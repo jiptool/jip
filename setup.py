@@ -27,6 +27,8 @@ except ImportError:
 
 from jip import JIP_VERSION as version
 
+long_description = open('README.rst').read()
+
 setup(
     name="jip",
     version=version,
@@ -38,15 +40,7 @@ setup(
     license='mit',
     packages=['jip'],
     install_requires = ['simplejson'],
-    long_description="""
-    Due to the complexity of traditional Java dependency management tool(ivy/maven), I created jip for simple, easy and pythonic. With jip, you can download and install jars from maven central repositories, just like the way of well known python package management tool, pip.
-
-The typical usage of jip is:
-jip install [groupId]:[artifactId]:[version]
-Currently, jip must be used within virtualenv, this is also a best practice for you to create and manage portable environments of python.
-
-jip is under active development, and does not have a stable release currently.
-    """,
+    long_description=long_description,
     classifiers=['Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
