@@ -31,6 +31,7 @@ def command(func):
         func(*args, **kwargs)
     ## register in command dictionary        
     commands[func.__name__] = wrapper
+    wrapper.__doc__ = func.__doc__
     return wrapper
 
 def _install(*artifacts):
