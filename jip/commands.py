@@ -27,6 +27,7 @@ import shutil
 
 from . import logger, JIP_VERSION, get_lib_path, get_virtual_home
 from jip.maven import repos_manager, Pom, Artifact
+from jip.search import searcher
 
 ## command dictionary {name: function}
 commands = {}
@@ -178,4 +179,16 @@ def install_dependencies(artifact_id):
         sys.exit(1)
     else:
         logger.info('[Finished] finished resolve dependencies for %s ' % artifact_id)
+
+@command
+def search(query):
+    """ Search maven central repository with keywords"""
+    logger.info('[Searching] "%s" in Maven central repository...' % query)
+    results = searcher.search(query)
+    if len(results) > 0:
+        for item in results:
+            g,a,v,p = item
+            print "%s-%s (%s)\n\t%s:%s:%s" % (a,v,p,g,a,v)
+    else:
+        logger.info('[Finished] nothing returned by criteria "%s"' % query)
 
