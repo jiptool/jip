@@ -108,6 +108,7 @@ You are suggested to use ``jip uninstall`` to remove an artifact. This
 will keep library index consistent with file system.
 
 ::
+
     jip uninstall org.springframework:spring-core:3.0.5.RELEASE
 
 Currently, there is dependency check in artifact removal. So you should
