@@ -1,0 +1,71 @@
+#! /usr/bin/env jython
+# Copyright (C) 2011 Sun Ning<classicning@gmail.com>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+
+import os
+import sys
+import pickle
+
+from . import get_virtual_home, logger
+
+class IndexManager(object):
+    """An IndexManager persists the artifacts you installed in your path and 
+    keep it consistent"""
+    def __init__(self, filename):
+        self.filename  = filename
+        self.picklefile = open(self.filename, 'w')
+        self.installed = set()
+
+    def add_artifact(self, artifact):
+        self.installed.add(artifact)
+
+    def remove_artifact(self, artifact):
+        if artifact in self.installed:
+            self.installed.remove(artifact)
+
+    def is_installed(self, artifact):
+        return artifact in self.installed
+
+    def is_same_installed(self, artifact):
+        is_same = lambda a: a.is_same_artifact(artifact)
+        return any(map(is_same, self.installed))
+
+    def initialize(self):
+        artifacts = pickle.load(self.picklefile)
+        for artifact in artifacts: self.installed.add(artifact)
+        self.keep_consistent()
+
+    def keep_consistent(self):
+        in_path_libs = os.listdir(get_lib_path())
+        remembered_libs = list(self.installed)
+        for artifact in remembered_libs:
+            local_name = artifact.to_jip_name()
+            if local_name not in in_path_libs:
+                logger.warn('[Warning] %s is not in your path which should be installed by previous actions. '
+                    + 'If you still need it, please reinstall it by: pip install %s' % (local_name, str(artifact)))
+                self.remove_artifact(artifact)
+
+    def finalize(self):
+        pickle.dump(self.installed, self.picklefile)
+        self.picklefile.close()
+
+index_manager = IndexManager(os.path.join(get_virtual_home(), '.jip_index'))
+

@@ -28,6 +28,7 @@ import shutil
 from . import logger, JIP_VERSION, get_lib_path, get_virtual_home
 from jip.maven import repos_manager, Pom, Artifact
 from jip.search import searcher
+from jip.index import index_manager
 
 ## command dictionary {name: function}
 commands = {}
@@ -35,7 +36,9 @@ def command(func):
     ## init default repos before running command
     def wrapper(*args, **kwargs):
         repos_manager.init_repos()
+        index_manager.initialize()
         func(*args, **kwargs)
+        index_manager.finalize()
     ## register in command dictionary        
     commands[func.__name__] = wrapper
     wrapper.__doc__ = func.__doc__
