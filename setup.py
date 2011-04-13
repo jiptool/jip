@@ -36,7 +36,12 @@ setup(
     author_email="classicning@gmail.com",
     url="https://github.com/sunng87/jip",
     description="jip installs packages, for Jython",
-    scripts = ["scripts/jip", "scripts/jython-all"],
+    scripts = ["scripts/jython-all"],
+    entry_points = {
+            'console_scripts' : [
+                'jip = jip.main:main'
+            ]
+        },
     license='mit',
     packages=['jip'],
     install_requires = ['simplejson'],
