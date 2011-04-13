@@ -24,14 +24,13 @@ import os
 import sys
 import pickle
 
-from . import get_virtual_home, logger
+from . import get_virtual_home, get_lib_path, logger
 
 class IndexManager(object):
     """An IndexManager persists the artifacts you installed in your path and 
     keep it consistent"""
     def __init__(self, filepath):
         self.filepath  = filepath
-        self.picklefile = open(self.filepath, 'w')
         self.installed = set()
 
     def add_artifact(self, artifact):
@@ -44,14 +43,15 @@ class IndexManager(object):
         return None
 
     def remove_artifact(self, artifact):
-        if artifact in self.installed:
-            self.installed.remove(artifact)
+        a = self.get_artifact(artifact)
+        if a is not None:
+            self.installed.remove(a)
 
     def remove_all(self):
         self.installed = set()
 
-    def is_installed(self, artifact):
-        return artifact in self.installed
+    def is_installed(self, artifact_test):
+        return self.get_artifact(artifact_test) is not None
 
     def is_same_installed(self, artifact):
         is_same = lambda a: a.is_same_artifact(artifact)
@@ -60,7 +60,8 @@ class IndexManager(object):
     def initialize(self):
         if os.path.exists(self.filepath):
             try:
-                artifacts = pickle.load(self.picklefile)
+                pickledata = open(self.filepath, 'r').read()
+                artifacts = pickle.loads(pickledata)
                 for artifact in artifacts: self.installed.add(artifact)
                 self.keep_consistent()
             except:
@@ -72,13 +73,14 @@ class IndexManager(object):
         for artifact in remembered_libs:
             local_name = artifact.to_jip_name()
             if local_name not in in_path_libs:
-                logger.warn('[Warning] %s is not in your path which should be installed by previous actions. '
-                    + 'If you still need it, please reinstall it by: pip install %s' % (local_name, str(artifact)))
+                logger.warn(('[Warning] %s is not in your path which should be installed by previous actions. '
+                    + 'If you still need it, please reinstall it by: pip install %s') % (local_name, str(artifact)))
                 self.remove_artifact(artifact)
 
     def finalize(self):
-        pickle.dump(self.installed, self.picklefile)
-        self.picklefile.close()
+        picklefile = open(self.filepath, 'w')
+        pickle.dump(self.installed, picklefile)
+        picklefile.close()
 
 index_manager = IndexManager(os.path.join(get_virtual_home(), '.jip_index'))
 

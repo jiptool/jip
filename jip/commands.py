@@ -24,6 +24,7 @@
 import os
 import sys
 import shutil
+import stat
 
 from . import logger, JIP_VERSION, get_lib_path, get_virtual_home
 from jip.maven import repos_manager, Pom, Artifact
@@ -87,13 +88,12 @@ def _install(*artifacts):
 
 
 @command
-def install(artifact_identifier):
+def install(artifact_id):
     """Install a package with maven coordinate "groupId:artifactId:version" """
-    group, artifact, version = artifact_identifier.split(":")
-    artifact_to_install = Artifact(group, artifact, version)
+    artifact = Artifact.from_id(artifact_id)
 
-    _install(artifact_to_install)
-    logger.info("[Finished] %s successfully installed" % artifact_identifier)
+    _install(artifact)
+    logger.info("[Finished] %s successfully installed" % artifact_id)
 
 @command
 def clean():
@@ -122,8 +122,7 @@ def resolve(pomfile):
 @command
 def update(artifact_id):
     """ Update a snapshot artifact, check for new version """
-    group, artifact, version = artifact_id.split(":")
-    artifact = Artifact(group, artifact, version)
+    artifact = Artifact.from_id(artifact_id)
     artifact = index_manager.get_artifact(artifact)
     if artifact is None:
         logger.error('[Error] Can not update %s, please install it first' % artifact)
@@ -139,7 +138,7 @@ def update(artifact_id):
             ts = selected_repos.last_modified(artifact)
             if ts is not None and ts > lm :
                 ## download new jar
-                selected_repos.download_jar(artifact)
+                selected_repos.download_jar(artifact, get_lib_path())
 
                 ## try to update dependencies
                 pomstring = selected_repos.download_pom(artifact)
@@ -162,8 +161,7 @@ def version():
 @command
 def install_dependencies(artifact_id):
     """ Install dependencies for given artifact, without download itself """
-    group, artifact, version = artifact_id.split(":")
-    artifact = Artifact(group, artifact, version)
+    artifact = Artifact.from_id(artifact_id)
 
     found = False
     for repos in repos_manager.repos:
@@ -192,4 +190,27 @@ def search(query):
             print "%s-%s (%s)\n\t%s:%s:%s" % (a,v,p,g,a,v)
     else:
         logger.info('[Finished] nothing returned by criteria "%s"' % query)
+
+@command
+def list():
+    """ List current installed artifacts """
+    index_manager.keep_consistent()
+    for a in index_manager.installed:
+        print "%s" % a
+
+@command
+def uninstall(artifact_id):
+    """ Remove an artifact from library path """
+    logger.info('[Checking] %s in library index' % artifact_id)
+    artifact = Artifact.from_id(artifact_id)
+    artifact_path = os.path.join(get_lib_path(), artifact.to_jip_name())
+
+    if index_manager.is_installed(artifact) and os.path.exists(artifact_path):
+        os.remove(artifact_path)
+        index_manager.remove_artifact(artifact)
+        logger.info('[Finished] %s removed from library path' % artifact_id)
+    else:
+        logger.error('[Error] %s not installed' % artifact_id)
+        sys.exit(1)
+
 

@@ -23,10 +23,11 @@
 
 import os
 import sys
+import shutil
 import urllib2
 import re
-import stat
 import locale
+import stat
 import time
 import hashlib
 from xml.etree import ElementTree
@@ -118,6 +119,9 @@ class Artifact(object):
     def __str__(self):
         return "%s:%s:%s" % (self.group, self.artifact, self.version)
 
+    def __hash__(self):
+        return self.group.__hash__()*13+self.artifact.__hash__()*7+self.version.__hash__()
+
     def is_snapshot(self):
         return self.version.find('SNAPSHOT') > 0
 
@@ -129,6 +133,12 @@ class Artifact(object):
             return group_match and artif_match
         else:
             return False
+
+    @classmethod
+    def from_id(cls, artifact_id):
+        group, artifact, version = artifact_id.split(":")
+        artifact = Artifact(group, artifact, version)
+        return artifact
 
 class MavenRepos(object):
     def __init__(self, name, uri):
