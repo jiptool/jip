@@ -77,7 +77,7 @@ way.
 
 ::
 
-    jip install-dependencies info.sunng.gefr:gefr:0.2-SNAPSHOT
+    jip deps info.sunng.gefr:gefr:0.2-SNAPSHOT
 
 Update snapshot artifact
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -95,6 +95,23 @@ Run jython with installed java packages in path
 Another script ``jython-all`` is shipped with jip. To run jython
 with Java packages included in path, just use ``jython-all``
 instead of ``jython``
+
+List
+~~~~
+
+Use ``jip list`` to see artifacts you just installed
+
+Uninstall
+~~~~~~~~~
+
+You are suggested to use ``jip uninstall`` to remove an artifact. This
+will keep library index consistent with file system.
+
+::
+    jip uninstall org.springframework:spring-core:3.0.5.RELEASE
+
+Currently, there is dependency check in artifact removal. So you should
+be careful when use this command.
 
 Clean
 ~~~~~
@@ -150,14 +167,9 @@ an example:
 
     <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-        <modelVersion>4.0.0</modelVersion>
-        <groupId>info.sunng.gefr</groupId>
-        <artifactId>gefr</artifactId>
-        <packaging>pom</packaging>
-        <version>0.2-SNAPSHOT</version>
-        <name>gefr</name>
-        <url>https://bitbucket.org/sunng/gefr</url>
-    
+        
+        ...
+
         <dependencies>
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -170,18 +182,9 @@ an example:
                 <artifactId>slf4j-log4j12</artifactId>
                 <version>1.6.1</version>
             </dependency>
+
+            ...
     
-            <dependency>
-                <groupId>info.sunng.soldat</groupId>
-                <artifactId>soldat</artifactId>
-                <version>1.0-SNAPSHOT</version>
-            </dependency>
-    
-            <dependency>
-                <groupId>org.apache.mina</groupId>
-                <artifactId>mina-core</artifactId>
-                <version>2.0.2</version>
-            </dependency>
         </dependencies>
     
         <repositories>

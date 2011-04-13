@@ -41,7 +41,7 @@ def command(func):
         func(*args, **kwargs)
         index_manager.finalize()
     ## register in command dictionary        
-    commands[func.__name__] = wrapper
+    commands[func.__name__.replace('_','-')] = wrapper
     wrapper.__doc__ = func.__doc__
     return wrapper
 
@@ -89,7 +89,7 @@ def _install(*artifacts):
 
 @command
 def install(artifact_id):
-    """Install a package with maven coordinate "groupId:artifactId:version" """
+    """ Install a package identified by "groupId:artifactId:version" """
     artifact = Artifact.from_id(artifact_id)
 
     _install(artifact)
@@ -159,8 +159,8 @@ def version():
     logger.info('[Version] jip %s, jython %s' % (JIP_VERSION, sys.version))
 
 @command
-def install_dependencies(artifact_id):
-    """ Install dependencies for given artifact, without download itself """
+def deps(artifact_id):
+    """ Install dependencies for a given artifact coordinator """
     artifact = Artifact.from_id(artifact_id)
 
     found = False
