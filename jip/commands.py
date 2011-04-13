@@ -45,12 +45,9 @@ def command(func):
     return wrapper
 
 def _install(*artifacts):
-    ## ready set contains artifact jip file names
-    ready_set = os.listdir(get_lib_path())
     
     ## dependency_set and installed_set contain artifact objects
     dependency_set = set()
-    installed_set = set()
 
     for a in artifacts:
         dependency_set.add(a)
@@ -59,7 +56,8 @@ def _install(*artifacts):
         artifact = dependency_set.pop()
 
         ## to prevent multiple version installed
-        if any(map(lambda a: a.is_same_artifact(artifact), installed_set)):
+        ## TODO we need a better strategy to resolve this
+        if index_manager.is_same_installed(artifact):
             continue
 
         found = False
@@ -69,17 +67,17 @@ def _install(*artifacts):
 
             ## find the artifact
             if pom is not None:
-                if not artifact.to_jip_name() in ready_set:
+                if not index_manager.is_installed(artifact):
                     repos.download_jar(artifact, get_lib_path())
-                    installed_set.add(artifact)
-                    ready_set.append(artifact.to_jip_name())
+                    artifact.repos = repos
+                    index_manager.add_artifact(artifact)
                 found = True
 
                 pom_obj = Pom(pom)
                 more_dependencies = pom_obj.get_dependencies()
                 for d in more_dependencies:
                     d.exclusions.extend(artifact.exclusions)
-                    if not any(map(lambda e: e.is_same_artifact(d), artifact.exclusions)):
+                    if not index_manager.is_same_installed(d):
                         dependency_set.add(d)
                 break
         
@@ -102,6 +100,7 @@ def clean():
     """ Remove all downloaded packages """
     logger.info("[Deleting] remove java libs in %s" % get_lib_path())
     shutil.rmtree(get_lib_path())
+    index_manager.remove_all()
     logger.info("[Finished] all downloaded files erased")
 
 ## another resolve task, allow jip to resovle dependencies from a pom file.
@@ -125,21 +124,20 @@ def update(artifact_id):
     """ Update a snapshot artifact, check for new version """
     group, artifact, version = artifact_id.split(":")
     artifact = Artifact(group, artifact, version)
+    artifact = index_manager.get_artifact(artifact)
+    if artifact is None:
+        logger.error('[Error] Can not update %s, please install it first' % artifact)
+        sys.exit(1)
 
     if artifact.is_snapshot():
+        selected_repos = artifact.repos
         installed_file = os.path.join(get_lib_path(), artifact.to_jip_name())
         if os.path.exists(installed_file):
             lm = os.stat(installed_file)[stat.ST_MTIME]
 
             ## find the repository contains the new release
-            selected_repos = None
-            for repos in repos_manager.repos:
-                ts = repos.last_modified(artifact)
-                if ts is not None and ts > lm :
-                    lm = ts
-                    selected_repos = repos
-            
-            if selected_repos is not None:
+            ts = selected_repos.last_modified(artifact)
+            if ts is not None and ts > lm :
                 ## download new jar
                 selected_repos.download_jar(artifact)
 

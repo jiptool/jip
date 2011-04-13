@@ -91,6 +91,7 @@ class Artifact(object):
         self.timestamp = None
         self.build_number = None
         self.exclusions = []
+        self.repos = None
 
     def to_jip_name(self, pattern="$artifact-$version.$ext", ext="jar"):
         template = Template(pattern)

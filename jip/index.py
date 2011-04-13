@@ -29,17 +29,26 @@ from . import get_virtual_home, logger
 class IndexManager(object):
     """An IndexManager persists the artifacts you installed in your path and 
     keep it consistent"""
-    def __init__(self, filename):
-        self.filename  = filename
-        self.picklefile = open(self.filename, 'w')
+    def __init__(self, filepath):
+        self.filepath  = filepath
+        self.picklefile = open(self.filepath, 'w')
         self.installed = set()
 
     def add_artifact(self, artifact):
         self.installed.add(artifact)
+        
+    def get_artifact(self, artifact_eq):
+        for artifact in self.installed:
+            if artifact == artifact_eq:
+                return artifact
+        return None
 
     def remove_artifact(self, artifact):
         if artifact in self.installed:
             self.installed.remove(artifact)
+
+    def remove_all(self):
+        self.installed = set()
 
     def is_installed(self, artifact):
         return artifact in self.installed
@@ -49,9 +58,13 @@ class IndexManager(object):
         return any(map(is_same, self.installed))
 
     def initialize(self):
-        artifacts = pickle.load(self.picklefile)
-        for artifact in artifacts: self.installed.add(artifact)
-        self.keep_consistent()
+        if os.path.exists(self.filepath):
+            try:
+                artifacts = pickle.load(self.picklefile)
+                for artifact in artifacts: self.installed.add(artifact)
+                self.keep_consistent()
+            except:
+                pass
 
     def keep_consistent(self):
         in_path_libs = os.listdir(get_lib_path())
