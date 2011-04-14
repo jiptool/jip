@@ -38,7 +38,7 @@ def print_help():
     print "jip install packages, for jython\n"
     print "Available commands:"
     for name, func in commands.items():
-        print "%s\t\t%s" % (name, func.__doc__)
+        print "  %-10s%s" % (name, func.__doc__)
 
 def main():
     logger.debug("sys args %s" % sys.argv)

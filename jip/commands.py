@@ -202,7 +202,7 @@ def list():
         print "%s" % a
 
 @command()
-def uninstall(artifact_id):
+def remove(artifact_id):
     """ Remove an artifact from library path """
     logger.info('[Checking] %s in library index' % artifact_id)
     artifact = Artifact.from_id(artifact_id)

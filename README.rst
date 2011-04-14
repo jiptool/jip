@@ -101,17 +101,17 @@ List
 
 Use ``jip list`` to see artifacts you just installed
 
-Uninstall
-~~~~~~~~~
+Remove a package
+~~~~~~~~~~~~~~~~
 
-You are suggested to use ``jip uninstall`` to remove an artifact. This
+You are suggested to use ``jip remove`` to remove an artifact. This
 will keep library index consistent with file system.
 
 ::
 
-    jip uninstall org.springframework:spring-core:3.0.5.RELEASE
+    jip remove org.springframework:spring-core:3.0.5.RELEASE
 
-Currently, there is dependency check in artifact removal. So you should
+Currently, there is no dependency check in artifact removal. So you should
 be careful when use this command.
 
 Clean
