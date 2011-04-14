@@ -46,7 +46,7 @@ setup(
     packages=['jip'],
     install_requires = ['simplejson'],
     long_description=long_description,
-    classifiers=['Development Status :: 3 - Alpha',
+    classifiers=['Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Topic :: Software Development',
