@@ -59,13 +59,17 @@ class IndexManager(object):
 
     def initialize(self):
         if os.path.exists(self.filepath):
-            try:
-                pickledata = open(self.filepath, 'r').read()
-                artifacts = pickle.loads(pickledata)
-                for artifact in artifacts: self.installed.add(artifact)
-                self.keep_consistent()
-            except:
-                pass
+#            try:
+#                pickledata = open(self.filepath, 'r').read()
+#                artifacts = pickle.loads(pickledata)
+#                for artifact in artifacts: self.installed.add(artifact)
+#                self.keep_consistent()
+#            except:
+#                pass
+             pickledata = open(self.filepath, 'r').read()
+             artifacts = pickle.loads(pickledata)
+             for artifact in artifacts: self.installed.add(artifact)
+             self.keep_consistent()
 
     def keep_consistent(self):
         in_path_libs = os.listdir(get_lib_path())
