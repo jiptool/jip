@@ -203,6 +203,35 @@ provided by setuptools or distutils
 
     from jip.dist import setup
 
+Other than the traditional pom configuration, jip also allows you to 
+describe dependencies in python. You can define a data structure in 
+your ``setup.py`` like as
+
+::
+
+    requires_java = {
+        'dependencies':[
+            ## (groupdId, artifactId, version)
+            ('org.slf4j', 'slf4j-api', '1.6.1'),
+            ('org.slf4j', 'slf4j-log4j12', '1.6.1'),
+            ('info.sunng.soldat', 'soldat', '1.0-SNAPSHOT'),
+            ('org.apache.mina', 'mina-core', '2.0.2')
+        ],
+        'repositories':[
+            ('sonatype-oss-snapshot', 'http://oss.sonatype.org/content/repositories/snapshots/')
+        ]
+    }
+
+And pass it to jip setup as keyword argument ``requires_java``
+
+::
+
+    from jip.dist import setup
+    setup(
+        ...
+        requires_java=requires_java,
+        ...)
+
 Links
 -----
 
