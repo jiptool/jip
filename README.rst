@@ -159,7 +159,7 @@ Distribution helpers
 --------------------
 
 From 0.4, you can use jip in your setup.py to simplify jython
-source package distribution. Create pom.xml in the same directory
+source package distribution. Create ``pom.xml`` in the same directory
 with setup.py. Fill it with your Java dependencies in standard
 maven way. You can also define custom repositories in pom. Here is
 an example:
@@ -197,7 +197,8 @@ an example:
     </project>
 
 And in your setup.py, use the jip setup wrapper instead of the one
-provided by setuptools or distutils
+provided by setuptools or distutils. You can add keyword argument 
+``pom`` to specify a custom pom file name.
 
 ::
 
@@ -222,7 +223,8 @@ your ``setup.py`` like as
         ]
     }
 
-And pass it to jip setup as keyword argument ``requires_java``
+And pass it to jip setup as keyword argument ``requires_java``. Once 
+jip found this argument, it won't try to load a pom file.
 
 ::
 

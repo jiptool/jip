@@ -64,8 +64,9 @@ class install(_install):
 
 def setup(**kwargs):
     if 'requires_java' in kwargs:
-        requires_java(kwargs['requires_java'])
-        kwargs.pop('requires_java')
+        requires_java(kwargs.pop('requires_java'))
+    if 'pom' in kwargs:
+        dist_descriptor = kwargs.pop('pom')
     if 'cmdclass' not in kwargs:
         kwargs['cmdclass'] = {'install': install}
     _setup(**kwargs)
