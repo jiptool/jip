@@ -33,17 +33,20 @@ from jip.index import index_manager
 
 ## command dictionary {name: function}
 commands = {}
-def command(func):
-    ## init default repos before running command
-    def wrapper(*args, **kwargs):
-        repos_manager.init_repos()
-        index_manager.initialize()
-        func(*args, **kwargs)
-        index_manager.finalize()
-    ## register in command dictionary        
-    commands[func.__name__.replace('_','-')] = wrapper
-    wrapper.__doc__ = func.__doc__
-    return wrapper
+def command(register=True):
+    def _command(func):
+        ## init default repos before running command
+        def wrapper(*args, **kwargs):
+            repos_manager.init_repos()
+            index_manager.initialize()
+            func(*args, **kwargs)
+            index_manager.finalize()
+        ## register in command dictionary        
+        if register:
+            commands[func.__name__.replace('_','-')] = wrapper
+            wrapper.__doc__ = func.__doc__
+        return wrapper
+    return _command
 
 def _install(*artifacts):
     
@@ -87,7 +90,7 @@ def _install(*artifacts):
             sys.exit(1)
 
 
-@command
+@command()
 def install(artifact_id):
     """ Install a package identified by "groupId:artifactId:version" """
     artifact = Artifact.from_id(artifact_id)
@@ -95,7 +98,7 @@ def install(artifact_id):
     _install(artifact)
     logger.info("[Finished] %s successfully installed" % artifact_id)
 
-@command
+@command()
 def clean():
     """ Remove all downloaded packages """
     logger.info("[Deleting] remove java libs in %s" % get_lib_path())
@@ -104,7 +107,7 @@ def clean():
     logger.info("[Finished] all downloaded files erased")
 
 ## another resolve task, allow jip to resovle dependencies from a pom file.
-@command
+@command()
 def resolve(pomfile):
     """ Resolve and download dependencies in pom file """
     pomfile = open(pomfile, 'r')
@@ -119,7 +122,7 @@ def resolve(pomfile):
     _install(*dependencies)
     logger.info("[Finished] all dependencies resolved")
 
-@command
+@command()
 def update(artifact_id):
     """ Update a snapshot artifact, check for new version """
     artifact = Artifact.from_id(artifact_id)
@@ -153,12 +156,12 @@ def update(artifact_id):
         logger.error('[Error] Can not update non-snapshot artifact')
         return
 
-@command
+@command()
 def version():
     """ Display jip version """
     logger.info('[Version] jip %s, jython %s' % (JIP_VERSION, sys.version))
 
-@command
+@command()
 def deps(artifact_id):
     """ Install dependencies for a given artifact coordinator """
     artifact = Artifact.from_id(artifact_id)
@@ -179,7 +182,7 @@ def deps(artifact_id):
     else:
         logger.info('[Finished] finished resolve dependencies for %s ' % artifact_id)
 
-@command
+@command()
 def search(query):
     """ Search maven central repository with keywords"""
     logger.info('[Searching] "%s" in Maven central repository...' % query)
@@ -191,14 +194,14 @@ def search(query):
     else:
         logger.info('[Finished] nothing returned by criteria "%s"' % query)
 
-@command
+@command()
 def list():
     """ List current installed artifacts """
     index_manager.keep_consistent()
     for a in index_manager.installed:
         print "%s" % a
 
-@command
+@command()
 def uninstall(artifact_id):
     """ Remove an artifact from library path """
     logger.info('[Checking] %s in library index' % artifact_id)

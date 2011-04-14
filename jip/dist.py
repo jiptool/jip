@@ -20,7 +20,10 @@
 # SOFTWARE.
 #
 
-from jip.commands import resolve
+from . import logger
+from jip.commands import resolve, command
+from jip.commands import _install as jip_install
+from jip.maven import Artifact, repos_manager
 
 try:
     from setuptools import setup as _setup
@@ -30,13 +33,39 @@ except:
     from distutils.command.install import install as _install
 
 dist_descriptor = 'pom.xml'
+dependencies = []
+repositories = []
+use_pom = True
+
+def requires_java(requires_info):
+    global use_pom, dependencies, repositories
+    use_pom = False
+    if 'repositories' in requires_info:
+        repositories = requires_info['repositories']
+    if 'dependencies' in requires_info:
+        dependencies = [Artifact(*d) for d in requires_info['dependencies']]
+
+@command(register=False)
+def requires_java_install():
+    for repos in repositories:
+        repos_manager.add_repos(repos[0], repos[1], 'remote')
+    jip_install(*dependencies)
+    logger.info("[Finished] all dependencies resolved")
+
 class install(_install):
+
     def run(self):
         _install.run(self)
-        print 'running jip.resolve'
-        resolve(dist_descriptor)
+        print 'running jip_resolve'
+        if use_pom:
+            resolve(dist_descriptor)
+        else:
+            requires_java_install()
 
 def setup(**kwargs):
+    if 'requires_java' in kwargs:
+        requires_java(kwargs['requires_java'])
+        kwargs.pop('requires_java')
     if 'cmdclass' not in kwargs:
         kwargs['cmdclass'] = {'install': install}
     _setup(**kwargs)
