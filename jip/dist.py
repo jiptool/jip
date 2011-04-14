@@ -21,7 +21,7 @@
 #
 
 from . import logger
-from jip.commands import resolve, command
+from jip.commands import resolve as jip_resolve, command
 from jip.commands import _install as jip_install
 from jip.maven import Artifact, repos_manager
 
@@ -31,8 +31,9 @@ try:
 except:    
     from distutils.core import setup as _setup
     from distutils.command.install import install as _install
+from distutils.core import Command as _Command    
 
-dist_descriptor = 'pom.xml'
+dist_pom = 'pom.xml'
 dependencies = []
 repositories = []
 use_pom = True
@@ -53,21 +54,42 @@ def requires_java_install():
     logger.info("[Finished] all dependencies resolved")
 
 class install(_install):
-
     def run(self):
         _install.run(self)
         print 'running jip_resolve'
+        self.run_command('resolve')
+
+class resolve(_Command):
+    user_options = []
+
+    def initialize_options(self):
+        self.pom_file = dist_pom
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
         if use_pom:
-            resolve(dist_descriptor)
+            jip_resolve(self.pom_file)
         else:
             requires_java_install()
 
 def setup(**kwargs):
     if 'requires_java' in kwargs:
         requires_java(kwargs.pop('requires_java'))
+
     if 'pom' in kwargs:
-        dist_descriptor = kwargs.pop('pom')
+        dist_pom = kwargs.pop('pom')
+
     if 'cmdclass' not in kwargs:
-        kwargs['cmdclass'] = {'install': install}
-    _setup(**kwargs)
+        kwargs['cmdclass'] = {}
+
+    if 'install' not in kwargs['cmdclass']:
+        ## add install command if user doesn't define custom one
+        kwargs['cmdclass']['install'] = install
+    if 'resolve' not in kwargs['cmdclass']:
+        ## add resolve command        
+        kwargs['cmdclass']['resolve'] = resolve
+
+    return _setup(**kwargs)
 
