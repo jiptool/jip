@@ -49,7 +49,7 @@ setup(
     classifiers=['Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
-        'Topic :: Software Development',
+        'Topic :: Software Development :: Build Tools',
         'Programming Language :: Python :: 2.5',
         'Programming Language :: Java',
         'Environment :: Console',

@@ -20,10 +20,10 @@
 # SOFTWARE.
 #
 
-JIP_VERSION = '0.4dev'
+JIP_VERSION = '0.4'
 __author__ = 'Sun Ning <classicning@gmail.com>'
 __version__ = JIP_VERSION
-__license__ = 'GPL'
+__license__ = 'MIT'
 
 import os
 import sys

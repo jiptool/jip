@@ -262,13 +262,41 @@ cheese shop, and there is just one command for everything
 
     pip install [your-package-name]
 
+Change Notes
+------------
+
+0.4 (2011-04-15)
+~~~~~~~~~~~~~~~~
+
+- New commands available: ``search``, ``deps``, ``list``, ``remove``
+- New feature ``jip.dist`` for setuptools integration
+- Dependency exclusion support, thanks *vvangelovski*
+- Allow project-scoped repository defined in ``pom.xml`` and ``setup.py``
+- Code refactoring, now programming friendly
+- README converted to reStructuredText
+- Migrate to MIT License
+
+0.2.1 (2011-04-07)
+~~~~~~~~~~~~~~~~~~
+
+- Improved console output format
+- Correct scope dependency management inheritance
+- Alpha release of snapshot management, you can update a snapshot artifact
+- Environment independent configuration. ``.jip`` for each environment
+- Bug fixes
+
+0.1 (2011-01-04)
+~~~~~~~~~~~~~~~~
+
+- Initial release
+
 Links
 -----
 
-
+-  `Don't repeat yourself: Distribute jython packages with jip.dist <http://sunng.info/blog/2011/04/dont-repeat-yourself-distribute-jython-package-with-jip-dist/>`_
 -  **Obsolete**
-   `http://sunng.info/blog/jip-0-1 <http://sunng.info/blog/jip-0-1/>`_
--  `http://github.com/sunng87/jip <http://github.com/sunng87/jip>`_
--  `http://pypi.python.org/pypi/jip <http://pypi.python.org/pypi/jip>`_
+   `Introduction to jip 0.1 <http://sunng.info/blog/jip-0-1/>`_
+-  `Project on Github <http://github.com/sunng87/jip>`_
+-  `Package on Python Cheese Shop <http://pypi.python.org/pypi/jip>`_
 
 
