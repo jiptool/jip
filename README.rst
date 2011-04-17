@@ -127,6 +127,17 @@ You can also search maven central repository with a ``jip search [keyword]``.
 The search service is provided by 
 `Sonatype's official Maven search <http://search.maven.org>`_ . 
 
+Persist current environment state
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Before you distribute you environment, you can use ``freeze`` to persist 
+current state into a pom file.
+
+::
+
+    jip freeze > pom.xml
+
+
 Configuration
 -------------
 
