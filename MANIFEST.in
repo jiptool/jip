@@ -2,3 +2,4 @@ include .gitignore
 include README.rst
 include THANKS
 include LICENSE
+recursive-include data *

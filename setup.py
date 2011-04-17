@@ -37,6 +37,7 @@ setup(
     url="https://github.com/sunng87/jip",
     description="jip installs packages, for Jython",
     scripts = ["scripts/jython-all"],
+    data_files = [('data', ['data/pom.tpl'])],
     entry_points = {
             'console_scripts' : [
                 'jip = jip.main:main'

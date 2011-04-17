@@ -80,6 +80,25 @@ class RepositoryManager(object):
             name, uri, rtype = repo
             self.add_repos(name, uri, rtype, order=len(self.repos))
 
+    def to_pom(self):
+        pom_template = Template("""
+        <repository>
+            <id>$repoId</id>
+            <name>$repoId</name>
+            <url>$url</url>
+        </repository>""")
+        reps = []
+        for repo in self.repos:
+            ### remote only
+            if isinstance(repo, MavenHttpRemoteRepos):
+                ### remote repository other than default
+                if repo.uri != self.MAVEN_PUBLIC_REPOS[1]:
+                    content = pom_template.substitute({'repoId':repo.name,
+                        'url': repo.uri})
+                    reps.append(content)
+        return ''.join(reps)
+
+
 ## globals
 repos_manager = RepositoryManager()
     

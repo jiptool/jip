@@ -23,6 +23,7 @@
 import os
 import sys
 import pickle
+from string import Template
 
 from . import get_virtual_home, get_lib_path, logger
 
@@ -85,6 +86,21 @@ class IndexManager(object):
         picklefile = open(self.filepath, 'w')
         pickle.dump(self.installed, picklefile)
         picklefile.close()
+
+    def to_pom(self):
+        pom_template = Template("""
+        <dependency>
+            <groupId>$groupId</groupId>
+            <artifactId>$artifactId</artifactId>
+            <version>$version</version>
+        </dependency>""")
+        deps = []
+        for artifact in self.installed:
+            content = pom_template.substitute({'groupId': artifact.group,
+                'artifactId': artifact.artifact, 'version': artifact.version}) 
+            deps.append(content)
+
+        return ''.join(deps)
 
 index_manager = IndexManager(os.path.join(get_virtual_home(), '.jip_index'))
 

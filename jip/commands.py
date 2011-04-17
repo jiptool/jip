@@ -25,8 +25,9 @@ import os
 import sys
 import shutil
 import stat
+from string import Template
 
-from . import logger, JIP_VERSION, get_lib_path, get_virtual_home
+from . import logger, JIP_VERSION, get_lib_path, get_virtual_home, __path__
 from jip.maven import repos_manager, Pom, Artifact
 from jip.search import searcher
 from jip.index import index_manager
@@ -216,4 +217,12 @@ def remove(artifact_id):
         logger.error('[Error] %s not installed' % artifact_id)
         sys.exit(1)
 
+@command()
+def freeze():
+    """ Dump current configuration to a pom file """
+    dependencies = index_manager.to_pom()
+    repositories = repos_manager.to_pom()
+    template = Template(open(os.path.join(__path__[0], '../data/pom.tpl')).read())
+    print template.substitute({'dependencies': dependencies,
+        'repositories': repositories})
 
