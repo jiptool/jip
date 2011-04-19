@@ -28,9 +28,9 @@ import stat
 from string import Template
 
 from . import logger, JIP_VERSION, get_lib_path, get_virtual_home, __path__
-from jip.maven import repos_manager, Pom, Artifact
-from jip.search import searcher
-from jip.index import index_manager
+from .maven import repos_manager, Pom, Artifact
+from .search import searcher
+from .index import index_manager
 
 ## command dictionary {name: function}
 commands = {}

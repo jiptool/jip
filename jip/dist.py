@@ -21,9 +21,9 @@
 #
 
 from . import logger
-from jip.commands import resolve as jip_resolve, command
-from jip.commands import _install as jip_install
-from jip.maven import Artifact, repos_manager
+from .commands import resolve as jip_resolve, command
+from .commands import _install as jip_install
+from .maven import Artifact, repos_manager
 
 try:
     from setuptools import setup as _setup

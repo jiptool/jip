@@ -24,7 +24,7 @@
 import sys
 
 from . import logger
-from jip.commands import commands
+from .commands import commands
 
 def parse_cmd(argus):
     if len(argus) > 0:
