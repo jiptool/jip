@@ -35,6 +35,7 @@ from string import Template
 from ConfigParser import ConfigParser
 
 from . import logger, get_virtual_home
+from .util import download, download_string, DownloadException
 
 class RepositoryManager(object):
     MAVEN_LOCAL_REPOS = ('local', os.path.expanduser('~/.m2/repository'), 'local')
@@ -238,13 +239,9 @@ class MavenHttpRemoteRepos(MavenRepos):
     def download_jar(self, artifact, local_path=None):
         maven_path = self.get_artifact_uri(artifact, 'jar')
         logger.info('[Downloading] jar from %s' % maven_path)
-        f = urllib2.urlopen(maven_path)
-        data =  f.read()
-        f.close()
-
         local_jip_path = local_path+"/"+artifact.to_jip_name()
         local_f = open(local_jip_path, 'w')
-        local_f.write(data)
+        download(maven_path, local_f)
         local_f.close()
         logger.info('[Finished] %s downloaded ' % maven_path)
 
@@ -262,15 +259,13 @@ class MavenHttpRemoteRepos(MavenRepos):
         maven_path = self.get_artifact_uri(artifact, 'pom')
         try:
             logger.info('[Checking] pom file %s'% maven_path)
-            f = urllib2.urlopen(maven_path)
-            data =  f.read()
-            f.close()
+            data = download_string(maven_path)
             
             ## cache
             self.pom_cache[artifact] = data
 
             return data
-        except urllib2.HTTPError:
+        except DownloadException:
             logger.info('[Skipped] Pom file not found at %s'% maven_path)
             return None
 
@@ -286,16 +281,14 @@ class MavenHttpRemoteRepos(MavenRepos):
         metadata_path = self.get_metadata_path(artifact) 
 
         try:
-            f = urllib2.urlopen(metadata_path)
-            data = f.read()
-            f.close()
+            data = download_string(metadata_path)
 
             eletree = ElementTree.fromstring(data)
             timestamp = eletree.findtext('versioning/snapshot/timestamp')
             build_number = eletree.findtext('versioning/snapshot/buildNumber')
             
             return (timestamp, build_number)
-        except urllib2.HTTPError:
+        except DownloadException:
             return None
 
     def get_metadata_path(self, artifact):
@@ -324,11 +317,9 @@ class MavenHttpRemoteRepos(MavenRepos):
         """ return pre calculated checksum value, only avaiable for remote repos """
         checksum_url = origin_file_name + "." + checksum_type
         try:
-            f = urllib2.urlopen(checksum_url)
-            data = f.read()
-            f.close()
+            data = download_string(checksum_url)
             return data
-        except urllib2.HTTPError:
+        except DownloadException:
             return None
 
     def checksum(self, filepath, checksum_type):

@@ -20,28 +20,36 @@
 # SOFTWARE.
 #
 
-import simplejson as json
-from .util import download_string
+import urllib
+import urllib2
+from StringIO import StringIO
 
-class SearchProvider(object):
-    def search(self, query, maxresults=20):
-        """ Search and return list of tuple(groupId, artifactId, version, packaging)"""
-        pass
+from . import JIP_VERSION
 
-class SonatypeMavenSearch(SearchProvider):
-    query_service = "http://search.maven.org/solrsearch/select?q=%s&rows=%d&wt=json"
-    def search(self, query, maxresults=20):
-        query_url = self.query_service % (query, maxresults)
+JIP_USER_AGENT = 'jip/%s' % JIP_VERSION
+BUF_SIZE = 4096
 
-        data = download_string(query_url)
-        
-        return self.parse_results(data)
+class DownloadException(Exception):
+    pass
 
-    def parse_results(self, data):
-        results = json.loads(data)
-       
-        docs = results['response']['docs']
-        return [(doc['g'], doc['a'], doc['latestVersion'], doc['p']) for doc in docs]
+def download(url, target):
+    ### download file to target (target is a file-like object)
+    request = urllib2.Request(url=url)
+    request.add_header('User-Agent', JIP_USER_AGENT)
+    try:
+        source = urllib2.urlopen(request)
+        buf=source.read(BUF_SIZE)
+        while len(buf) > 0:
+            target.write(buf)
+            buf = source.read(BUF_SIZE)
+        source.close()
+    except urllib2.HTTPError:
+        raise DownloadException()
 
-searcher = SonatypeMavenSearch()
+def download_string(url):
+    buf = StringIO()
+    download(url, buf)
+    data = buf.getvalue()
+    buf.close()
+    return data
 
