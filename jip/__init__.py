@@ -24,30 +24,12 @@ JIP_VERSION = '0.5dev'
 __author__ = 'Sun Ning <classicning@gmail.com>'
 __version__ = JIP_VERSION
 __license__ = 'MIT'
-
-import os
-import sys
 import logging
-logging.basicConfig(level=logging.INFO, format="\033[1m%(name)s\033[0m  %(message)s")
+logging.basicConfig(level=logging.INFO, format="\033[1m%(name)s\033[0m %(message)s")
 logger = logging.getLogger('jip')
 
-def get_virtual_home():
-    if 'VIRTUAL_ENV' in os.environ:
-        JYTHON_HOME = os.environ['VIRTUAL_ENV']
-    else:
-        logger.warn('Warning: no virtualenv detected, remember to activate it.')
-        if 'JYTHON_HOME' in os.environ:
-            JYTHON_HOME = os.environ['JYTHON_HOME']
-        else:
-            ## fail back to use current directory
-            JYTHON_HOME = os.getcwd()
-    return JYTHON_HOME            
 
-def get_lib_path():
-    JYTHON_HOME = get_virtual_home()        
-    DEFAULT_JAVA_LIB_PATH = os.path.join(JYTHON_HOME, 'javalib')
-
-    if not os.path.exists(DEFAULT_JAVA_LIB_PATH):
-        os.mkdir(DEFAULT_JAVA_LIB_PATH)
-    return DEFAULT_JAVA_LIB_PATH        
+from .repository import repos_manager
+from .index import index_manager
+from .util import pool
 

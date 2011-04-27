@@ -20,10 +20,11 @@
 # SOFTWARE.
 #
 
-from . import logger
+from . import logger, repos_manager
 from .commands import resolve as jip_resolve, command
 from .commands import _install as jip_install
-from .maven import Artifact, repos_manager
+from .maven import Artifact
+from .util import pool
 
 try:
     from setuptools import setup as _setup
@@ -51,6 +52,7 @@ def requires_java_install():
     for repos in repositories:
         repos_manager.add_repos(repos[0], repos[1], 'remote')
     jip_install(*dependencies)
+    pool.join()
     logger.info("[Finished] all dependencies resolved")
 
 class install(_install):

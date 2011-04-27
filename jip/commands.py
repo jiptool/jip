@@ -27,10 +27,10 @@ import shutil
 import stat
 from string import Template
 
-from . import logger, JIP_VERSION, get_lib_path, get_virtual_home, __path__
-from .maven import repos_manager, Pom, Artifact
+from . import repos_manager, index_manager, logger, JIP_VERSION, __path__, pool
+from .maven import Pom, Artifact
 from .search import searcher
-from .index import index_manager
+from .util import get_lib_path, get_virtual_home
 
 ## command dictionary {name: function}
 commands = {}
@@ -97,6 +97,8 @@ def install(artifact_id):
     artifact = Artifact.from_id(artifact_id)
 
     _install(artifact)
+    ## wait for all tasks executed
+    pool.join()
     logger.info("[Finished] %s successfully installed" % artifact_id)
 
 @command()
@@ -121,6 +123,8 @@ def resolve(pomfile):
 
     dependencies = pom.get_dependencies()
     _install(*dependencies)
+    ## wait for all tasks executed
+    pool.join()
     logger.info("[Finished] all dependencies resolved")
 
 @command()
@@ -149,6 +153,8 @@ def update(artifact_id):
                 pom = Pom(pomstring)
                 dependencies = pom.get_dependencies()
                 _install(*dependencies)
+                ## wait for all tasks executed
+                pool.join()
             logger.info('[Finished] Artifact snapshot %s updated' % artifact_id)
         else:
             logger.error('[Error] Artifact not installed: %s' % artifact)
@@ -181,6 +187,8 @@ def deps(artifact_id):
         logger.error('[Error] artifact %s not found in any repository' % artifact_id)
         sys.exit(1)
     else:
+        ## wait for all tasks executed
+        pool.join()
         logger.info('[Finished] finished resolve dependencies for %s ' % artifact_id)
 
 @command()

@@ -25,7 +25,8 @@ import sys
 import pickle
 from string import Template
 
-from . import get_virtual_home, get_lib_path, logger
+from . import logger
+from .util import get_virtual_home, get_lib_path
 
 class IndexManager(object):
     """An IndexManager persists the artifacts you installed in your path and 
