@@ -38,7 +38,7 @@ BUF_SIZE = 4096
 class DownloadException(Exception):
     pass
 
-def download(url, target, async=False, close_target=False):
+def download(url, target, async=False, close_target=False, quiet=True):
     ### download file to target (target is a file-like object)
     if async:
         pool.submit(url, target)
@@ -49,7 +49,8 @@ def download(url, target, async=False, close_target=False):
             t0 = time.time()
             source = urllib2.urlopen(request)
             size = source.headers.getheader('Content-Length')
-            logger.info('[Downloading] %s %s bytes to download' % (url, size))
+            if not quiet:
+                logger.info('[Downloading] %s %s bytes to download' % (url, size))
             buf=source.read(BUF_SIZE)
             while len(buf) > 0:
                 target.write(buf)
@@ -58,7 +59,8 @@ def download(url, target, async=False, close_target=False):
             if close_target:
                 target.close()
             t1 = time.time()
-            logger.info('[Downloading] Download %s completed in %f secs' % (url, (t1-t0)))
+            if not quiet:
+                logger.info('[Downloading] Download %s completed in %f secs' % (url, (t1-t0)))
         except urllib2.HTTPError:
             raise DownloadException()
 
@@ -84,7 +86,7 @@ class DownloadThreadPool(object):
     def _do_work(self):
         while True:
             url, target = self.queue.get()
-            download(url, target, close_target=True)
+            download(url, target, close_target=True, quiet=False)
             self.queue.task_done()
 
     def join(self):
