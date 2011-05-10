@@ -276,6 +276,13 @@ cheese shop, and there is just one command for everything
 Change Notes
 ------------
 
+0.5 (2011-04-28)
+~~~~~~~~~~~~~~~~
+
+- Artifact jar package download in paralell
+- new command `freeze` to dump current state
+- bugfix
+
 0.4 (2011-04-15)
 ~~~~~~~~~~~~~~~~
 
