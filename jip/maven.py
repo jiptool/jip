@@ -239,6 +239,8 @@ class Pom(object):
         version = eletree.findtext('version')
         if version is None:
             version = eletree.findtext('parent/version')
+        if groupId is None:
+            groupId = eletree.findtext('parent/groupId')
 
         properties["project.groupId"] = groupId
         properties["project.artifactId"] = artifactId
@@ -269,3 +271,4 @@ class Pom(object):
             uri = repository.findtext("url")
             repos.append((name, uri, "remote"))
         return repos
+

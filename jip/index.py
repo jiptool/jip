@@ -23,6 +23,7 @@
 import os
 import sys
 import pickle
+import threading
 from string import Template
 
 from . import logger
@@ -34,9 +35,11 @@ class IndexManager(object):
     def __init__(self, filepath):
         self.filepath  = filepath
         self.installed = set()
+        self.persist_lock = threading.Lock()
 
     def add_artifact(self, artifact):
         self.installed.add(artifact)
+        #self.persist()
         
     def get_artifact(self, artifact_eq):
         for artifact in self.installed:
@@ -58,6 +61,16 @@ class IndexManager(object):
     def is_same_installed(self, artifact):
         is_same = lambda a: a.is_same_artifact(artifact)
         return any(map(is_same, self.installed))
+
+    def persist(self):
+        try:
+            self.persist_lock.acquire()
+
+            picklefile = open(self.filepath, 'w')
+            pickle.dump(self.installed, picklefile)
+            picklefile.close()
+        finally:
+            self.persist_lock.release()
 
     def initialize(self):
         if os.path.exists(self.filepath):
@@ -84,9 +97,7 @@ class IndexManager(object):
                 self.remove_artifact(artifact)
 
     def finalize(self):
-        picklefile = open(self.filepath, 'w')
-        pickle.dump(self.installed, picklefile)
-        picklefile.close()
+        self.persist()
 
     def to_pom(self):
         pom_template = Template("""

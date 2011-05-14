@@ -215,7 +215,10 @@ class MavenHttpRemoteRepos(MavenRepos):
             maven_name = artifact.to_maven_name(ext)
         else:
             maven_name = artifact.to_maven_snapshot_name(ext)
-        maven_path = self.uri + maven_name
+        if self.uri.endswith('/'):
+            maven_path = self.uri + maven_name
+        else:
+            maven_path = self.uri + '/' + maven_name
         return maven_path
 
     def get_snapshot_info(self, artifact):

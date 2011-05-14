@@ -72,6 +72,7 @@ def _install(*artifacts):
 
             ## find the artifact
             if pom is not None:
+
                 if not index_manager.is_installed(artifact):
                     repos.download_jar(artifact, get_lib_path())
                     artifact.repos = repos
@@ -79,6 +80,9 @@ def _install(*artifacts):
                 found = True
 
                 pom_obj = Pom(pom)
+                for r in pom_obj.get_repositories():
+                    repos_manager.add_repos(*r)
+
                 more_dependencies = pom_obj.get_dependencies()
                 for d in more_dependencies:
                     d.exclusions.extend(artifact.exclusions)
