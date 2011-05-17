@@ -273,13 +273,22 @@ cheese shop, and there is just one command for everything
 
     pip install [your-package-name]
 
+Contact
+-------
+
+If you have any problem using jip, or feature request for jip,
+please feel free to fire an issue on
+`github issue tracker <http://github.com/sunng97/jip/issues/>`_. You can
+also follow `@Sunng <http://twitter.com/Sunng/>`_ on twitter.
+
 Change Notes
 ------------
 
-0.5 (2011-04-28)
+0.5.1 (2011-05-14)
 ~~~~~~~~~~~~~~~~
 
 - Artifact jar package download in paralell
+- User-agent header included in http request
 - new command `freeze` to dump current state
 - bugfix
 
