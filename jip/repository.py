@@ -40,7 +40,7 @@ class RepositoryManager(object):
     def __init__(self):
         self.repos = []
 
-    def add_repos(self, name, uri, repos_type, order=-1):
+    def add_repos(self, name, uri, repos_type, order=None):
         if repos_type == 'local':
             repo = MavenFileSystemRepos(name, uri)
         elif repos_type == 'remote':
@@ -50,7 +50,10 @@ class RepositoryManager(object):
             sys.exit(1)
 
         if repo not in self.repos:
-            self.repos.insert(order, repo)
+            if order is not None:
+                self.repos.insert(order, repo)
+            else:
+                self.repos.append(repo)
             logger.debug('[Repository] Added: %s' % repo.name)
 
     def _load_config(self):
@@ -176,6 +179,7 @@ class MavenHttpRemoteRepos(MavenRepos):
     def __init__(self, name, uri):
         MavenRepos.__init__(self, name, uri)
         self.pom_cache = {}
+        self.pom_not_found_cache = []
 
     def download_jar(self, artifact, local_path=None):
         maven_path = self.get_artifact_uri(artifact, 'jar')
@@ -187,6 +191,9 @@ class MavenHttpRemoteRepos(MavenRepos):
         ##logger.info('[Finished] %s downloaded ' % maven_path)
 
     def download_pom(self, artifact):
+        if artifact in self.pom_not_found_cache:
+            return None
+
         if artifact in self.pom_cache:
             return self.pom_cache[artifact]
 
@@ -207,6 +214,7 @@ class MavenHttpRemoteRepos(MavenRepos):
 
             return data
         except DownloadException:
+            self.pom_not_found_cache.append(artifact)
             logger.info('[Skipped] Pom file not found at %s'% maven_path)
             return None
 
