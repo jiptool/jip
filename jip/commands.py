@@ -51,6 +51,9 @@ def command(register=True):
 
 def _install(*artifacts):
     
+    ## download queue
+    download_list = []
+
     ## dependency_set and installed_set contain artifact objects
     dependency_set = set()
 
@@ -62,7 +65,8 @@ def _install(*artifacts):
 
         ## to prevent multiple version installed
         ## TODO we need a better strategy to resolve this
-        if index_manager.is_same_installed(artifact):
+        if index_manager.is_same_installed(artifact)\
+                and artifact not in download_list:
             continue
 
         found = False
@@ -74,8 +78,9 @@ def _install(*artifacts):
             if pom is not None:
 
                 if not index_manager.is_installed(artifact):
-                    repos.download_jar(artifact, get_lib_path())
+                    #repos.download_jar(artifact, get_lib_path())
                     artifact.repos = repos
+                    download_list.append(artifact)
                     index_manager.add_artifact(artifact)
                 found = True
 
@@ -94,6 +99,8 @@ def _install(*artifacts):
             logger.error("[Error] Artifact not found: %s", artifact)
             sys.exit(1)
 
+    for artifact in download_list:
+        artifact.repos.download_jar(artifact, get_lib_path())
 
 @command()
 def install(artifact_id):
