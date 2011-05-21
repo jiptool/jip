@@ -35,6 +35,7 @@ class IndexManager(object):
     def __init__(self, filepath):
         self.filepath  = filepath
         self.installed = set()
+        self.committed = False
         self.persist_lock = threading.Lock()
 
     def add_artifact(self, artifact):
@@ -63,6 +64,8 @@ class IndexManager(object):
         return any(map(is_same, self.installed))
 
     def persist(self):
+        if not self.committed:
+            return 
         try:
             self.persist_lock.acquire()
 
@@ -73,6 +76,7 @@ class IndexManager(object):
             self.persist_lock.release()
 
     def initialize(self):
+        self.committed = False
         if os.path.exists(self.filepath):
 #            try:
 #                pickledata = open(self.filepath, 'r').read()
@@ -98,6 +102,9 @@ class IndexManager(object):
 
     def finalize(self):
         self.persist()
+
+    def commit(self):
+        self.committed = True
 
     def to_pom(self):
         pom_template = Template("""

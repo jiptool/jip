@@ -102,6 +102,8 @@ def _install(*artifacts):
     for artifact in download_list:
         artifact.repos.download_jar(artifact, get_lib_path())
 
+    index_manager.commit()
+
 @command()
 def install(artifact_id):
     """ Install a package identified by "groupId:artifactId:version" """
@@ -118,6 +120,7 @@ def clean():
     logger.info("[Deleting] remove java libs in %s" % get_lib_path())
     shutil.rmtree(get_lib_path())
     index_manager.remove_all()
+    index_manager.commit()
     logger.info("[Finished] all downloaded files erased")
 
 ## another resolve task, allow jip to resovle dependencies from a pom file.
@@ -231,6 +234,7 @@ def remove(artifact_id):
     if index_manager.is_installed(artifact) and os.path.exists(artifact_path):
         os.remove(artifact_path)
         index_manager.remove_artifact(artifact)
+        index_manager.commit()
         logger.info('[Finished] %s removed from library path' % artifact_id)
     else:
         logger.error('[Error] %s not installed' % artifact_id)
