@@ -74,7 +74,7 @@ class RepositoryManager(object):
             return None
 
     def init_repos(self):
-        for repo in (self._load_config() or [self.MAVEN_LOCAL_REPOS, self.MAVEN_PUBLIC_REPOS]):
+        for repo in (self._load_config() or [self.MAVEN_PUBLIC_REPOS]):
             ## create repos in order
             name, uri, rtype = repo
             self.add_repos(name, uri, rtype, order=len(self.repos))
