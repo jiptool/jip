@@ -103,7 +103,7 @@ def _install(artifacts, exclusions=[]):
             sys.exit(1)
 
     for artifact in download_list:
-            artifact.repos.download_jar(artifact, get_lib_path())
+        artifact.repos.download_jar(artifact, get_lib_path())
 
     index_manager.commit()
 
