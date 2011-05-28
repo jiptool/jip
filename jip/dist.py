@@ -37,21 +37,24 @@ from distutils.core import Command as _Command
 dist_pom = 'pom.xml'
 dependencies = []
 repositories = []
+exclusions = []
 use_pom = True
 
 def requires_java(requires_info):
-    global use_pom, dependencies, repositories
+    global use_pom, dependencies, repositories, exclusions
     use_pom = False
     if 'repositories' in requires_info:
         repositories = requires_info['repositories']
     if 'dependencies' in requires_info:
         dependencies = [Artifact(*d) for d in requires_info['dependencies']]
+    if 'exclusions' in requires_info:
+        exclusions = [Artifact(*d) for d in requires_info['exclusions']]
 
 @command(register=False)
 def requires_java_install():
     for repos in repositories:
         repos_manager.add_repos(repos[0], repos[1], 'remote')
-    jip_install(*dependencies)
+    jip_install(dependencies, exclusions)
     pool.join()
     logger.info("[Finished] all dependencies resolved")
 

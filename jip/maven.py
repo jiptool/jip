@@ -30,7 +30,7 @@ from string import Template
 from . import logger, repos_manager
 
 class Artifact(object):
-    def __init__(self, group, artifact, version):
+    def __init__(self, group, artifact, version=None):
         self.group = group
         self.artifact = artifact
         self.version = version
@@ -71,13 +71,10 @@ class Artifact(object):
         return self.version.find('SNAPSHOT') > 0
 
     def is_same_artifact(self, other):
-        if isinstance(other, Artifact):
-            ## need to support wildcard
-            group_match = True if self.group == '*' or other.group == '*' else self.group == other.group
-            artif_match = True if self.artifact == '*' or other.artifact == '*' else self.artifact == other.artifact
-            return group_match and artif_match
-        else:
-            return False
+       ## need to support wildcard
+       group_match = True if self.group == '*' or other.group == '*' else self.group == other.group
+       artif_match = True if self.artifact == '*' or other.artifact == '*' else self.artifact == other.artifact
+       return group_match and artif_match
 
     @classmethod
     def from_id(cls, artifact_id):

@@ -49,7 +49,7 @@ def command(register=True):
         return wrapper
     return _command
 
-def _install(*artifacts):
+def _install(artifacts, exclusions=[]):
     
     ## download queue
     download_list = []
@@ -78,10 +78,13 @@ def _install(*artifacts):
             if pom is not None:
 
                 if not index_manager.is_installed(artifact):
-                    #repos.download_jar(artifact, get_lib_path())
+                    # repos.download_jar(artifact, get_lib_path())
                     artifact.repos = repos
-                    download_list.append(artifact)
-                    index_manager.add_artifact(artifact)
+
+                    # skip excluded artifact
+                    if not any(map(artifact.is_same_artifact, exclusions)):
+                        download_list.append(artifact)
+                        index_manager.add_artifact(artifact)
                 found = True
 
                 pom_obj = Pom(pom)
@@ -100,7 +103,7 @@ def _install(*artifacts):
             sys.exit(1)
 
     for artifact in download_list:
-        artifact.repos.download_jar(artifact, get_lib_path())
+            artifact.repos.download_jar(artifact, get_lib_path())
 
     index_manager.commit()
 
@@ -109,7 +112,7 @@ def install(artifact_id):
     """ Install a package identified by "groupId:artifactId:version" """
     artifact = Artifact.from_id(artifact_id)
 
-    _install(artifact)
+    _install([artifact])
     ## wait for all tasks executed
     pool.join()
     logger.info("[Finished] %s successfully installed" % artifact_id)
@@ -136,7 +139,7 @@ def resolve(pomfile):
         repos_manager.add_repos(*repos)
 
     dependencies = pom.get_dependencies()
-    _install(*dependencies)
+    _install(dependencies)
     ## wait for all tasks executed
     pool.join()
     logger.info("[Finished] all dependencies resolved")
@@ -166,7 +169,7 @@ def update(artifact_id):
                 pomstring = selected_repos.download_pom(artifact)
                 pom = Pom(pomstring)
                 dependencies = pom.get_dependencies()
-                _install(*dependencies)
+                _install(dependencies)
                 ## wait for all tasks executed
                 pool.join()
             logger.info('[Finished] Artifact snapshot %s updated' % artifact_id)
@@ -194,7 +197,7 @@ def deps(artifact_id):
         if pom_raw is not None:
             pom = Pom(pom_raw)
             found = True
-            _install(*pom.get_dependencies())
+            _install(pom.get_dependencies())
             break
 
     if not found:
