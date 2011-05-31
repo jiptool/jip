@@ -37,8 +37,16 @@ def main():
             name, defaults = argspec
             nargs = None if defaults is None else argparse.OPTIONAL
             sb.add_argument(name, nargs=nargs, type=str)
+
+        for option in func.options:
+            name, nargs, description,option_type = option
+            if nargs == 0:
+                sb.add_argument('--'+name, action='store_const', help=description, const=True)
+            else:
+                sb.add_argument('--'+name, nargs=nargs, help=description, type=option_type)
     
     args = vars(parser.parse_args())
+    print args
     cmd = args.pop('command')
-    commands[cmd](**args)
+    #commands[cmd](**args)
 

@@ -35,7 +35,9 @@ from .util import get_lib_path, get_virtual_home
 
 ## command dictionary {name: function}
 commands = {}
-def command(register=True):
+
+## options [(name, nargs, description, option_type), ...]
+def command(register=True, options=[]):
     def _command(func):
         ## init default repos before running command
         def wrapper(*args, **kwargs):
@@ -54,6 +56,9 @@ def command(register=True):
             wrapper.args = []
             for argidx in range(len(args[0])):
                 wrapper.args.append((args[0][argidx], args[argidx+1]))
+
+            ### addtional options
+            wrapper.options = options
 
         return wrapper
     return _command
@@ -116,7 +121,9 @@ def _install(artifacts, exclusions=[]):
 
     index_manager.commit()
 
-@command()
+@command(options=[
+    ("dry-run", 0, "perform an install command without actual download", None)
+])
 def install(artifact_id):
     """ Install a package identified by "groupId:artifactId:version" """
     artifact = Artifact.from_id(artifact_id)
