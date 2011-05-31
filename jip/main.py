@@ -27,20 +27,6 @@ import argparse
 from . import logger
 from .commands import commands
 
-def parse_cmd(argus):
-    if len(argus) > 0:
-        cmd = argus[0]
-        values = argus[1:]
-        return (cmd, values)
-    else:
-        return (None, None)
-
-def print_help():
-    print "jip install packages, for jython\n"
-    print "Available commands:"
-    for name, func in commands.items():
-        print "  %-10s%s" % (name, func.__doc__)
-
 def main():
     logger.debug("sys args %s" % sys.argv)
     parser = argparse.ArgumentParser()
@@ -49,9 +35,10 @@ def main():
         sb = subparsers.add_parser(name, help=func.__doc__)
         for argspec in func.args:
             name, defaults = argspec
-            nargs = 1 if defaults is None else argparse.OPTIONAL
-            sb.add_argument(name, nargs=nargs)
+            nargs = None if defaults is None else argparse.OPTIONAL
+            sb.add_argument(name, nargs=nargs, type=str)
     
-    args = parser.parse_args()
-    print args
-        
+    args = vars(parser.parse_args())
+    cmd = args.pop('command')
+    commands[cmd](**args)
+
