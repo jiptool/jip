@@ -25,6 +25,7 @@ import os
 import sys
 import shutil
 import stat
+import inspect
 from string import Template
 
 from . import repos_manager, index_manager, logger, JIP_VERSION, __path__, pool
@@ -45,7 +46,15 @@ def command(register=True):
         ## register in command dictionary        
         if register:
             commands[func.__name__.replace('_','-')] = wrapper
-            wrapper.__doc__ = func.__doc__
+            wrapper.__doc__ = inspect.getdoc(func)
+            wrapper.__raw__ = func
+
+            ### inspect arguments
+            args = inspect.getargspec(func)
+            wrapper.args = []
+            for argidx in range(len(args[0])):
+                wrapper.args.append((args[0][argidx], args[argidx+1]))
+
         return wrapper
     return _command
 

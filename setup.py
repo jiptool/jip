@@ -45,7 +45,7 @@ setup(
         },
     license='mit',
     packages=['jip'],
-    install_requires = ['simplejson'],
+    install_requires = ['simplejson', 'argparse'],
     long_description=long_description,
     classifiers=['Development Status :: 4 - Beta',
         'Intended Audience :: Developers',

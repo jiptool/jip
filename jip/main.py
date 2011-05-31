@@ -22,6 +22,7 @@
 
 
 import sys
+import argparse
 
 from . import logger
 from .commands import commands
@@ -42,10 +43,15 @@ def print_help():
 
 def main():
     logger.debug("sys args %s" % sys.argv)
-    args = sys.argv[1:] 
-    cmd, values = parse_cmd(args)
-    if cmd in commands:
-        commands[cmd](*values)
-    else:
-        print_help()
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(dest="command")
+    for name, func in commands.items():
+        sb = subparsers.add_parser(name, help=func.__doc__)
+        for argspec in func.args:
+            name, defaults = argspec
+            nargs = 1 if defaults is None else argparse.OPTIONAL
+            sb.add_argument(name, nargs=nargs)
+    
+    args = parser.parse_args()
+    print args
         
