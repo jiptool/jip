@@ -55,7 +55,8 @@ def command(register=True, options=[]):
             args = inspect.getargspec(func)
             wrapper.args = []
             for argidx in range(len(args[0])):
-                wrapper.args.append((args[0][argidx], args[argidx+1]))
+                if args[0][argidx] != 'options':
+                    wrapper.args.append((args[0][argidx], args[argidx+1]))
 
             ### addtional options
             wrapper.options = options
@@ -122,9 +123,9 @@ def _install(artifacts, exclusions=[]):
     index_manager.commit()
 
 @command(options=[
-    ("dry-run", 0, "perform an install command without actual download", None)
+    ("dry-run", 0, "perform an install command without actual download", bool)
 ])
-def install(artifact_id):
+def install(artifact_id, options={}):
     """ Install a package identified by "groupId:artifactId:version" """
     artifact = Artifact.from_id(artifact_id)
 

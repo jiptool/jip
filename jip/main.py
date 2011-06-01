@@ -41,12 +41,23 @@ def main():
         for option in func.options:
             name, nargs, description,option_type = option
             if nargs == 0:
-                sb.add_argument('--'+name, action='store_const', help=description, const=True)
+                sb.add_argument('--'+name, action='store_const',
+                        help=description, const=True, dest="options."+name)
             else:
-                sb.add_argument('--'+name, nargs=nargs, help=description, type=option_type)
+                sb.add_argument('--'+name, nargs=nargs, help=description,
+                        type=option_type, dest="options."+name)
     
     args = vars(parser.parse_args())
-    print args
     cmd = args.pop('command')
-    #commands[cmd](**args)
+    options = {}
+    for k in args.keys():
+        if k.startswith('options.'):
+            v = args.pop(k)
+            k = k[k.index('.')+1:]
+            options[k] = v
+
+    if options:
+        args['options'] = options
+    print args
+    commands[cmd](**args)
 
