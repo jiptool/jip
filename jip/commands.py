@@ -64,7 +64,8 @@ def command(register=True, options=[]):
         return wrapper
     return _command
 
-def _install(artifacts, exclusions=[]):
+def _install(artifacts, exclusions=[], options={}):
+    dryrun = "dry-run" in options
     
     ## download queue
     download_list = []
@@ -117,10 +118,14 @@ def _install(artifacts, exclusions=[]):
             logger.error("[Error] Artifact not found: %s", artifact)
             sys.exit(1)
 
-    for artifact in download_list:
-        artifact.repos.download_jar(artifact, get_lib_path())
-
-    index_manager.commit()
+    if not dryrun:
+        for artifact in download_list:
+            artifact.repos.download_jar(artifact, get_lib_path())
+        index_manager.commit()
+    else:
+        logger.info("[Install] Artifacts to install:")
+        for artifact in download_list:
+            print artifact
 
 @command(options=[
     ("dry-run", 0, "perform an install command without actual download", bool)
@@ -129,7 +134,7 @@ def install(artifact_id, options={}):
     """ Install a package identified by "groupId:artifactId:version" """
     artifact = Artifact.from_id(artifact_id)
 
-    _install([artifact])
+    _install([artifact], options=options)
     ## wait for all tasks executed
     pool.join()
     logger.info("[Finished] %s successfully installed" % artifact_id)
