@@ -41,8 +41,8 @@ def main():
         for option in func.options:
             name, nargs, description,option_type = option
             if nargs == 0:
-                sb.add_argument('--'+name, action='store_const',
-                        help=description, const=True, dest="options."+name)
+                sb.add_argument('--'+name, action='store_true',
+                        help=description, dest="options."+name)
             else:
                 sb.add_argument('--'+name, nargs=nargs, help=description,
                         type=option_type, dest="options."+name)

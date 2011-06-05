@@ -66,6 +66,10 @@ def command(register=True, options=[]):
 
 def _install(artifacts, exclusions=[], options={}):
     dryrun = "dry-run" in options
+    _exclusions = options.get('exclude', [])
+    if _exclusions:
+        _exclusions = map(lambda x: Artifact(*(x.split(":"))), _exclusions)
+        exclusions.extend(_exclusions)
     
     ## download queue
     download_list = []
@@ -128,7 +132,8 @@ def _install(artifacts, exclusions=[], options={}):
             print artifact
 
 @command(options=[
-    ("dry-run", 0, "perform an install command without actual download", bool)
+    ("dry-run", 0, "perform an install command without actual download", bool),
+    ("exclude", "+", "exclude artifacts in install, for instance, 'junit:junit'", str)
 ])
 def install(artifact_id, options={}):
     """ Install a package identified by "groupId:artifactId:version" """
