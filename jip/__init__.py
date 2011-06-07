@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-JIP_VERSION = '0.6'
+JIP_VERSION = '0.7'
 __author__ = 'Sun Ning <classicning@gmail.com>'
 __version__ = JIP_VERSION
 __license__ = 'MIT'
@@ -31,5 +31,6 @@ logger = logging.getLogger('jip')
 
 from .repository import repos_manager
 from .index import index_manager
+from .cache impoer cache_manager
 from .util import pool
 

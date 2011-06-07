@@ -118,7 +118,7 @@ class MavenRepos(object):
     def get_artifact_uri(self, artifact, ext):
         pass
 
-    def download_jar(self, artifact, local_path=None):
+    def download_jar(self, artifact, local_path):
         """ download or copy file to local path, raise exception when failed """
         pass
 
@@ -143,7 +143,7 @@ class MavenFileSystemRepos(MavenRepos):
         maven_file_path = os.path.join(self.uri,maven_name)
         return maven_file_path
 
-    def download_jar(self, artifact, local_path=None):
+    def download_jar(self, artifact, local_path):
         maven_file_path = self.get_artifact_uri(artifact, 'jar')
         logger.info("[Checking] jar package from %s" % self.name)
         if os.path.exists(maven_file_path):
@@ -181,7 +181,7 @@ class MavenHttpRemoteRepos(MavenRepos):
         self.pom_cache = {}
         self.pom_not_found_cache = []
 
-    def download_jar(self, artifact, local_path=None):
+    def download_jar(self, artifact, local_path):
         maven_path = self.get_artifact_uri(artifact, 'jar')
         logger.info('[Downloading] jar from %s' % maven_path)
         local_jip_path = local_path+"/"+artifact.to_jip_name()
