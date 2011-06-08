@@ -28,7 +28,8 @@ import stat
 import inspect
 from string import Template
 
-from . import repos_manager, index_manager, logger, JIP_VERSION, __path__, pool
+from . import repos_manager, index_manager, logger,\
+        JIP_VERSION, __path__, pool, cache_manager
 from .maven import Pom, Artifact
 from .search import searcher
 from .util import get_lib_path, get_virtual_home
@@ -64,8 +65,23 @@ def command(register=True, options=[]):
         return wrapper
     return _command
 
+def _find_pom(artifact):
+    """ find pom and repos contains pom """
+    ## lookup cache first
+    if cache_manager.is_artifact_in_cache(artifact):
+        pom = cache_manager.get_artifact_pom(artifact)       
+        return (pom, cache_manager.as_repos())
+    else:
+        for repos in repos_manager.repos:
+            pom = repos.download_pom(artifact)
+            ## find the artifact
+            if pom is not None:
+                cache_manager.put_artifact_pom(artifact, pom)
+                return (pom, repos)
+        return None            
+
 def _install(artifacts, exclusions=[], options={}):
-    dryrun = "dry-run" in options
+    dryrun = options.get("dry-run", False)
     _exclusions = options.get('exclude', [])
     if _exclusions:
         _exclusions = map(lambda x: Artifact(*(x.split(":"))), _exclusions)
@@ -89,43 +105,45 @@ def _install(artifacts, exclusions=[], options={}):
                 and artifact not in download_list:
             continue
 
-        found = False
-        for repos in repos_manager.repos:
-
-            pom = repos.download_pom(artifact)
-
-            ## find the artifact
-            if pom is not None:
-
-                if not index_manager.is_installed(artifact):
-                    # repos.download_jar(artifact, get_lib_path())
-                    artifact.repos = repos
-
-                    # skip excluded artifact
-                    if not any(map(artifact.is_same_artifact, exclusions)):
-                        download_list.append(artifact)
-                        index_manager.add_artifact(artifact)
-                found = True
-
-                pom_obj = Pom(pom)
-                for r in pom_obj.get_repositories():
-                    repos_manager.add_repos(*r)
-
-                more_dependencies = pom_obj.get_dependencies()
-                for d in more_dependencies:
-                    d.exclusions.extend(artifact.exclusions)
-                    if not index_manager.is_same_installed(d):
-                        dependency_set.add(d)
-                break
-        
-        if not found:
+        pominfo = _find_pom(artifact)
+        if pominfo is None:
             logger.error("[Error] Artifact not found: %s", artifact)
             sys.exit(1)
 
+        if not index_manager.is_installed(artifact):
+            pom, repos = pominfo
+
+            # repos.download_jar(artifact, get_lib_path())
+            artifact.repos = repos
+
+            # skip excluded artifact
+            if not any(map(artifact.is_same_artifact, exclusions)):
+                download_list.append(artifact)
+                index_manager.add_artifact(artifact)
+            found = True
+
+            pom_obj = Pom(pom)
+            for r in pom_obj.get_repositories():
+                repos_manager.add_repos(*r)
+
+            more_dependencies = pom_obj.get_dependencies()
+            for d in more_dependencies:
+                d.exclusions.extend(artifact.exclusions)
+                if not index_manager.is_same_installed(d):
+                    dependency_set.add(d)
+        
     if not dryrun:
+        ## download to cache first
         for artifact in download_list:
-            artifact.repos.download_jar(artifact, get_lib_path())
+            if artifact.repos != cache_manager.as_repos():
+                artifact.repos.download_jar(artifact, 
+                        cache_manager.get_jar_path(artifact))
+        pool.join()
+        for artifact in download_list:
+            cache_manager.get_artifact_jar(artifact, get_lib_path())
+
         index_manager.commit()
+        logger.info("[Finished] dependencies resolved")
     else:
         logger.info("[Install] Artifacts to install:")
         for artifact in download_list:
@@ -140,9 +158,6 @@ def install(artifact_id, options={}):
     artifact = Artifact.from_id(artifact_id)
 
     _install([artifact], options=options)
-    ## wait for all tasks executed
-    pool.join()
-    logger.info("[Finished] %s successfully installed" % artifact_id)
 
 @command()
 def clean():
@@ -167,9 +182,6 @@ def resolve(pomfile):
 
     dependencies = pom.get_dependencies()
     _install(dependencies)
-    ## wait for all tasks executed
-    pool.join()
-    logger.info("[Finished] all dependencies resolved")
 
 @command()
 def update(artifact_id):
@@ -197,9 +209,6 @@ def update(artifact_id):
                 pom = Pom(pomstring)
                 dependencies = pom.get_dependencies()
                 _install(dependencies)
-                ## wait for all tasks executed
-                pool.join()
-            logger.info('[Finished] Artifact snapshot %s updated' % artifact_id)
         else:
             logger.error('[Error] Artifact not installed: %s' % artifact)
             sys.exit(1)
@@ -230,10 +239,6 @@ def deps(artifact_id):
     if not found:
         logger.error('[Error] artifact %s not found in any repository' % artifact_id)
         sys.exit(1)
-    else:
-        ## wait for all tasks executed
-        pool.join()
-        logger.info('[Finished] finished resolve dependencies for %s ' % artifact_id)
 
 @command()
 def search(query):

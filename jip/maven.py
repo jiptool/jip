@@ -27,7 +27,7 @@ import re
 from xml.etree import ElementTree
 from string import Template
 
-from . import logger, repos_manager
+from . import logger, repos_manager, cache_manager
 
 class Artifact(object):
     def __init__(self, group, artifact, version=None):
@@ -110,10 +110,14 @@ class Pom(object):
             parent_version_id = parent.findtext("version")
 
             artifact = Artifact(parent_group_id, parent_artifact_id, parent_version_id)
-            for repos in repos_manager.repos:
-                parent_pom = repos.download_pom(artifact)
-                if parent_pom is not None:
-                    break
+            if cache_manager.is_artifact_in_cache(artifact, jar=False):
+                parent_pom = cache_manager.get_artifact_pom(artifact)
+            else:
+                for repos in repos_manager.repos:
+                    parent_pom = repos.download_pom(artifact)
+                    if parent_pom is not None:
+                        cache_manager.put_artifact_pom(artifact, parent_pom)
+                        break
 
             if parent_pom is not None:
                 self.parent = Pom(parent_pom)

@@ -31,6 +31,6 @@ logger = logging.getLogger('jip')
 
 from .repository import repos_manager
 from .index import index_manager
-from .cache impoer cache_manager
+from .cache import cache_manager
 from .util import pool
 

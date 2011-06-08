@@ -33,11 +33,17 @@ class CacheRepository(MavenRepos):
             os.makedirs(self.uri)
 
     def get_artifact_uri(self, artifact, ext):
-        group = artifact.group
+        directory = self.get_artifact_dir(artifact)
         name = artifact.artifact+"-"+artifact.version+"."+ext
 
-        return os.path.join(self.uri, group, 
-                artifact.artifact, name)
+        return os.path.join(self.uri, directory, name)
+
+    def get_artifact_dir(self, artifact):
+        directory = os.path.join(self.uri, artifact.group, 
+                artifact.artifact)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        return directory            
 
     def download_jar(self, artifact, local_path=None):
         path = self.get_artifact_uri(artifact, 'jar')
@@ -64,9 +70,12 @@ class CacheRepository(MavenRepos):
         shutil.copy(jarpath, path)
 
 class CacheManager(object):
-    def __init__(self, enable):
-        self.enable = enable
+    def __init__(self):
+        self.enable = True
         self.cache = CacheRepository()
+
+    def set_enable(self, enable):
+        self.enable = enable
 
     def get_artifact_pom(self, artifact):
         if self.enable:
@@ -75,14 +84,32 @@ class CacheManager(object):
             return None
 
     def get_artifact_jar(self, artifact, topath):
-        if self.enable:
-            self.cache.download_jar(artifact, topath)
+        self.cache.download_jar(artifact, topath)
 
     def put_artifact_pom(self, artifact, data):
         self.cache.put_pom(artifact, data)
 
     def put_artifact_jar(self, artifact, jarpath):
         self.cache.put_jar(artifact, jarpath)
+
+    def as_repos(self):
+        return self.cache
+
+    def get_cache_path(self):
+        return self.cache.uri
+
+    def get_jar_path(self, artifact):
+        return self.cache.get_artifact_dir(artifact)
+
+    def is_artifact_in_cache(self, artifact, jar=True):
+        pom_in_cache = os.path.exists(
+                self.cache.get_artifact_uri(artifact, 'pom'))
+        jar_in_cache = os.path.exists(
+                self.cache.get_artifact_uri(artifact, 'jar'))
+        if jar:
+            return pom_in_cache and jar_in_cache
+        else:
+            return pom_in_cache
 
 cache_manager = CacheManager()
 
