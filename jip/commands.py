@@ -31,7 +31,6 @@ from string import Template
 from . import repos_manager, index_manager, logger,\
         JIP_VERSION, __path__, pool, cache_manager
 from .maven import Pom, Artifact
-from .search import searcher
 from .util import get_lib_path, get_virtual_home
 
 ## command dictionary {name: function}
@@ -249,6 +248,7 @@ def deps(artifact_id):
 def search(query):
     """ Search maven central repository with keywords"""
     logger.info('[Searching] "%s" in Maven central repository...' % query)
+    from .search import searcher
     results = searcher.search(query)
     if len(results) > 0:
         for item in results:
