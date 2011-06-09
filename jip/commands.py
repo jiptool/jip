@@ -80,7 +80,7 @@ def _find_pom(artifact):
                 return (pom, repos)
         return None            
 
-def _resolve_artifacts(artifacts, exclusions):
+def _resolve_artifacts(artifacts, exclusions=[]):
     ## download queue
     download_list = []
 

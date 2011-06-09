@@ -98,8 +98,11 @@ class CacheManager(object):
     def get_cache_path(self):
         return self.cache.uri
 
-    def get_jar_path(self, artifact):
-        return self.cache.get_artifact_dir(artifact)
+    def get_jar_path(self, artifact, filepath=False):
+        if filepath:
+            return self.cache.get_artifact_uri(artifact, 'jar')
+        else:
+            return self.cache.get_artifact_dir(artifact)
 
     def is_artifact_in_cache(self, artifact, jar=True):
         pom_in_cache = os.path.exists(
