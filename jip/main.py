@@ -58,6 +58,6 @@ def main():
 
     if options:
         args['options'] = options
-    print args
+    logger.debug(args)
     commands[cmd](**args)
 
