@@ -80,13 +80,7 @@ def _find_pom(artifact):
                 return (pom, repos)
         return None            
 
-def _install(artifacts, exclusions=[], options={}):
-    dryrun = options.get("dry-run", False)
-    _exclusions = options.get('exclude', [])
-    if _exclusions:
-        _exclusions = map(lambda x: Artifact(*(x.split(":"))), _exclusions)
-        exclusions.extend(_exclusions)
-    
+def _resolve_artifacts(artifacts, exclusions):
     ## download queue
     download_list = []
 
@@ -132,6 +126,17 @@ def _install(artifacts, exclusions=[], options={}):
                 if not index_manager.is_same_installed(d):
                     dependency_set.add(d)
         
+    return download_list
+
+def _install(artifacts, exclusions=[], options={}):
+    dryrun = options.get("dry-run", False)
+    _exclusions = options.get('exclude', [])
+    if _exclusions:
+        _exclusions = map(lambda x: Artifact(*(x.split(":"))), _exclusions)
+        exclusions.extend(_exclusions)
+
+    download_list = _resolve_artifacts(artifacts, exclusions)
+    
     if not dryrun:
         ## download to cache first
         for artifact in download_list:
