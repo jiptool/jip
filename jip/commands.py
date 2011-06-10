@@ -53,10 +53,18 @@ def command(register=True, options=[]):
 
             ### inspect arguments
             args = inspect.getargspec(func)
+            defaults = list(args[3]) if args[3] else []
             wrapper.args = []
-            for argidx in range(len(args[0])):
+
+            for argidx in range(len(args[0])-1, -1, -1):
                 if args[0][argidx] != 'options':
-                    wrapper.args.append((args[0][argidx], args[argidx+1]))
+                    default_value = defaults.pop() if defaults else None
+                    wrapper.args.append((args[0][argidx], default_value))
+                    wrapper.args.reverse()
+                else:
+                    ## options should have default value {}
+                    ## so remove this one for counter
+                    defaults.pop()
 
             ### addtional options
             wrapper.options = options
@@ -154,7 +162,7 @@ def _install(artifacts, exclusions=[], options={}):
             print artifact
 
 @command(options=[
-    ("dry-run", 0, "perform an install command without actual download", bool),
+    ("dry-run", 0, "perform a command without actual download", bool),
     ("exclude", "+", "exclude artifacts in install, for instance, 'junit:junit'", str)
 ])
 def install(artifact_id, options={}):
@@ -173,8 +181,10 @@ def clean():
     logger.info("[Finished] all downloaded files erased")
 
 ## another resolve task, allow jip to resovle dependencies from a pom file.
-@command()
-def resolve(pomfile):
+@command(options=[
+    ("dry-run", 0, "perform a command without actual download", bool)
+])
+def resolve(pomfile, options={}):
     """ Resolve and download dependencies in pom file """
     pomfile = open(pomfile, 'r')
     pomstring = pomfile.read()
@@ -185,7 +195,7 @@ def resolve(pomfile):
         repos_manager.add_repos(*repos)
 
     dependencies = pom.get_dependencies()
-    _install(dependencies)
+    _install(dependencies, options=options)
 
 @command()
 def update(artifact_id):
@@ -225,31 +235,36 @@ def version():
     """ Display jip version """
     logger.info('[Version] jip %s, jython %s' % (JIP_VERSION, sys.version))
 
-@command()
-def deps(artifact_id):
+@command(options=[
+    ("dry-run", 0, "perform a command without actual download", bool)
+])
+def deps(artifact_id, options={}):
     """ Install dependencies for a given artifact coordinator """
     artifact = Artifact.from_id(artifact_id)
-
-    found = False
-    for repos in repos_manager.repos:
-        pom_raw = repos.download_pom(artifact)
-        ## find the artifact
-        if pom_raw is not None:
-            pom = Pom(pom_raw)
-            found = True
-            _install(pom.get_dependencies())
-            break
-
-    if not found:
+    pominfo = _find_pom(artifact)
+    if pominfo is not None:
+        pom = Pom(pominfo[0])
+        _install(pom.get_dependencies(), options=options)
+    else:
         logger.error('[Error] artifact %s not found in any repository' % artifact_id)
         sys.exit(1)
 
-@command()
-def search(query):
+@command(options=[
+    ('group', '?', "group name", str),
+    ('artifact', '?', "artifact name", str)
+])
+def search(query="", options={}):
     """ Search maven central repository with keywords"""
-    logger.info('[Searching] "%s" in Maven central repository...' % query)
     from .search import searcher
-    results = searcher.search(query)
+    if query is not None and len(query) > 0:
+        logger.info('[Searching] "%s" in Maven central repository...' % query)
+        results = searcher.search(query)
+    else:
+        g = options.get('group', '')
+        a = options.get('artifact', '')
+        query = 'g:"%s" AND a:"%s"' % (g,a)
+        logger.info('[Searching] "%s" in Maven central repository...' % query)
+        results = searcher.search(query, core="gav")
     if len(results) > 0:
         for item in results:
             g,a,v,p = item

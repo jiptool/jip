@@ -20,6 +20,7 @@
 # SOFTWARE.
 #
 
+import urllib
 import simplejson as json
 from .util import download_string
 
@@ -30,18 +31,23 @@ class SearchProvider(object):
 
 class SonatypeMavenSearch(SearchProvider):
     query_service = "http://search.maven.org/solrsearch/select?q=%s&rows=%d&wt=json"
-    def search(self, query, maxresults=20):
-        query_url = self.query_service % (query, maxresults)
+    def search(self, query, core=None, maxresults=20):
+        query_url = self.query_service % (urllib.quote(query), maxresults)
+        if core == 'gav':
+            query_url += "&core=gav"
 
         data = download_string(query_url)
         
-        return self.parse_results(data)
+        if core == 'gav':
+            return self.parse_results(data, version_name='v')
+        else:
+            return self.parse_results(data, version_name='latestVersion') 
 
-    def parse_results(self, data):
+    def parse_results(self, data, version_name):
         results = json.loads(data)
        
         docs = results['response']['docs']
-        return [(doc['g'], doc['a'], doc['latestVersion'], doc['p']) for doc in docs]
+        return [(doc['g'], doc['a'], doc[version_name], doc['p']) for doc in docs]
 
 searcher = SonatypeMavenSearch()
 
