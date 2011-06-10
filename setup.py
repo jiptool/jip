@@ -29,32 +29,39 @@ from jip import JIP_VERSION as version
 
 long_description = open('README.rst').read()
 
-setup(
-    name="jip",
-    version=version,
-    author="Sun Ning",
-    author_email="classicning@gmail.com",
-    url="https://github.com/sunng87/jip",
-    description="jip installs packages, for Jython",
-    scripts = ["scripts/jython-all"],
-    data_files = [('data', ['data/pom.tpl'])],
-    entry_points = {
-            'console_scripts' : [
-                'jip = jip.main:main'
-            ]
-        },
-    license='mit',
-    packages=['jip'],
-    install_requires = ['simplejson', 'argparse'],
-    long_description=long_description,
-    classifiers=['Development Status :: 4 - Beta',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        'Topic :: Software Development :: Build Tools',
-        'Programming Language :: Python :: 2.5',
-        'Programming Language :: Java',
-        'Environment :: Console',
-        'Operating System :: POSIX']
+def is_virtualenv():
+    import os
+    return 'VIRTUAL_ENV' in os.environ
+
+setup_args=dict(
+        name="jip",
+        version=version,
+        author="Sun Ning",
+        author_email="classicning@gmail.com",
+        url="https://github.com/sunng87/jip",
+        description="jip installs packages, for Jython",
+        license='mit',
+        packages=['jip'],
+        long_description=long_description,
+        classifiers=['Development Status :: 4 - Beta',
+            'Intended Audience :: Developers',
+            'License :: OSI Approved :: MIT License',
+            'Topic :: Software Development :: Build Tools',
+            'Programming Language :: Python :: 2.5',
+            'Programming Language :: Java',
+            'Environment :: Console',
+            'Operating System :: POSIX']
 )
 
+if is_virtualenv():
+    setup_args['scripts'] = ["scripts/jython-all"]
+    setup_args['install_requires'] = ['simplejson', 'argparse']
+    setup_args['entry_points'] = {
+                'console_scripts' : [
+                    'jip = jip.main:main'
+                ]
+            }
+    setup_args['data_files'] = [('data', ['data/pom.tpl'])]
+
+setup(**setup_args)
 
