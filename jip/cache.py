@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from repository import MavenRepos
+from jip.repository import MavenRepos
 
 import os
 import shutil

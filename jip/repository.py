@@ -31,8 +31,8 @@ import hashlib
 import urllib2
 from xml.etree import ElementTree
 
-from . import logger
-from .util import DownloadException, download, download_string, get_virtual_home
+from jip import logger
+from jip.util import DownloadException, download, download_string, get_virtual_home
 
 class RepositoryManager(object):
     MAVEN_LOCAL_REPOS = ('local', os.path.expanduser('~/.m2/repository'), 'local')

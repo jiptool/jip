@@ -26,8 +26,8 @@ import pickle
 import threading
 from string import Template
 
-from . import logger
-from .util import get_virtual_home, get_lib_path
+from jip import logger
+from jip.util import get_virtual_home, get_lib_path
 
 class IndexManager(object):
     """An IndexManager persists the artifacts you installed in your path and 
@@ -97,7 +97,7 @@ class IndexManager(object):
             local_name = artifact.to_jip_name()
             if local_name not in in_path_libs:
                 logger.warn(('[Warning] %s is not in your path which should be installed by previous actions. '
-                    + 'If you still need it, please reinstall it by: pip install %s') % (local_name, str(artifact)))
+                    + 'If you still need it, please reinstall it by: jip install %s') % (local_name, str(artifact)))
                 self.remove_artifact(artifact)
 
     def finalize(self):

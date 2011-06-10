@@ -28,10 +28,10 @@ import stat
 import inspect
 from string import Template
 
-from . import repos_manager, index_manager, logger,\
+from jip import repos_manager, index_manager, logger,\
         JIP_VERSION, __path__, pool, cache_manager
-from .maven import Pom, Artifact
-from .util import get_lib_path, get_virtual_home
+from jip.maven import Pom, Artifact
+from jip.util import get_lib_path, get_virtual_home
 
 ## command dictionary {name: function}
 commands = {}
@@ -91,7 +91,7 @@ def _resolve_artifacts(artifacts, exclusions=[]):
     ## download queue
     download_list = []
 
-    ## dependency_set and installed_set contain artifact objects
+    ## dependency_set contains artifact objects to resolve
     dependency_set = set()
 
     for a in artifacts:
@@ -121,7 +121,6 @@ def _resolve_artifacts(artifacts, exclusions=[]):
             if not any(map(artifact.is_same_artifact, exclusions)):
                 download_list.append(artifact)
                 index_manager.add_artifact(artifact)
-            found = True
 
             pom_obj = Pom(pom)
             for r in pom_obj.get_repositories():
@@ -262,9 +261,8 @@ def search(query="", options={}):
     else:
         g = options.get('group', '')
         a = options.get('artifact', '')
-        query = 'g:"%s" AND a:"%s"' % (g,a)
-        logger.info('[Searching] "%s" in Maven central repository...' % query)
-        results = searcher.search(query, core="gav")
+        logger.info('[Searching] "%s:%s" in Maven central repository...' % (g,a))
+        results = searcher.search_group_artifact(g, a)
     if len(results) > 0:
         for item in results:
             g,a,v,p = item

@@ -20,11 +20,11 @@
 # SOFTWARE.
 #
 
-from . import logger, repos_manager
-from .commands import resolve as jip_resolve, command
-from .commands import _install as jip_install
-from .maven import Artifact
-from .util import pool
+from jip import logger, repos_manager
+from jip.commands import resolve as jip_resolve, command
+from jip.commands import _install as jip_install
+from jip.maven import Artifact
+from jip.util import pool
 
 try:
     from setuptools import setup as _setup

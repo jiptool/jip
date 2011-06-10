@@ -24,8 +24,8 @@
 import sys
 import argparse
 
-from . import logger
-from .commands import commands
+from jip import logger
+from jip.commands import commands
 
 def main():
     logger.debug("sys args %s" % sys.argv)

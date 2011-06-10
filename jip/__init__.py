@@ -29,8 +29,8 @@ logging.basicConfig(level=logging.INFO, format="\033[1m%(name)s\033[0m %(message
 logger = logging.getLogger('jip')
 
 
-from .repository import repos_manager
-from .index import index_manager
-from .cache import cache_manager
-from .util import pool
+from jip.repository import repos_manager
+from jip.index import index_manager
+from jip.cache import cache_manager
+from jip.util import pool
 

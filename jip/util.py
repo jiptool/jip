@@ -30,7 +30,7 @@ from StringIO import StringIO
 import Queue
 import threading
 
-from . import JIP_VERSION, logger
+from jip import JIP_VERSION, logger
 
 JIP_USER_AGENT = 'jip/%s' % JIP_VERSION
 BUF_SIZE = 4096

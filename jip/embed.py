@@ -22,9 +22,9 @@
 
 import sys
 
-from . import cache_manager, repos_manager, pool
-from .commands import _resolve_artifacts
-from .maven import Artifact
+from jip import cache_manager, repos_manager, pool
+from jip.commands import _resolve_artifacts
+from jip.maven import Artifact
 
 __all__ = ['require']
 

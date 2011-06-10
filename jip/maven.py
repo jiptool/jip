@@ -63,6 +63,9 @@ class Artifact(object):
 
     def __str__(self):
         return "%s:%s:%s" % (self.group, self.artifact, self.version)
+        
+    def __repr__(self):
+        return self.__str__()
 
 #    def __hash__(self):
 #        return self.group.__hash__()*13+self.artifact.__hash__()*7+self.version.__hash__()

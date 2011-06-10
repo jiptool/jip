@@ -22,28 +22,35 @@
 
 import urllib
 import simplejson as json
-from .util import download_string
+from jip.util import download_string
 
 class SearchProvider(object):
     def search(self, query, maxresults=20):
         """ Search and return list of tuple(groupId, artifactId, version, packaging)"""
         pass
 
+    def search_group_artifact(self, group, artifact, maxresults=20):
+        """ Search with group and artifact name"""
+        pass
+
 class SonatypeMavenSearch(SearchProvider):
     query_service = "http://search.maven.org/solrsearch/select?q=%s&rows=%d&wt=json"
-    def search(self, query, core=None, maxresults=20):
+    def search(self, query, maxresults=20):
         query_url = self.query_service % (urllib.quote(query), maxresults)
-        if core == 'gav':
-            query_url += "&core=gav"
 
         data = download_string(query_url)
         
-        if core == 'gav':
-            return self.parse_results(data, version_name='v')
-        else:
-            return self.parse_results(data, version_name='latestVersion') 
+        return self._parse_results(data, version_name='latestVersion') 
 
-    def parse_results(self, data, version_name):
+    def search_group_artifact(self, group, artifact, maxresults=20):
+        query = 'g:"%s" AND a:"%s"'%(group, artifact)
+        query_url = self.query_service % (urllib.quote(query), maxresults)
+        query_url += "&core=gav"
+
+        data = download_string(query_url)
+        return self._parse_results(data, version_name='v')
+
+    def _parse_results(self, data, version_name):
         results = json.loads(data)
        
         docs = results['response']['docs']
