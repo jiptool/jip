@@ -105,7 +105,7 @@ def get_virtual_home():
     if 'VIRTUAL_ENV' in os.environ:
         JYTHON_HOME = os.environ['VIRTUAL_ENV']
     else:
-        logger.warn('Warning: no virtualenv detected')
+        #logger.warn('Warning: no virtualenv detected')
         if 'JYTHON_HOME' in os.environ:
             JYTHON_HOME = os.environ['JYTHON_HOME']
         else:
