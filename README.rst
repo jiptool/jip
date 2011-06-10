@@ -12,9 +12,12 @@ jip itself is distributed according to **MIT License** .
 Install
 -------
 
-jip is required to run within virtualenv, which is a best practice
+jip is recommended to run within virtualenv, which is a best practice
 for python/jython developers to created a standalone, portable
-environment.
+environment. From jip 0.7, you can use jip.embed in the global installation.
+
+Install jip within virtualenv
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Create virtualenv with jython:
 
@@ -34,6 +37,16 @@ Download and install jip with pip:
 ::
 
     pip install jip
+
+Install jip for global jython (since 0.7)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Download jip from `pypi page <http://pypi.python.org/pypi/jip>`_ . 
+Then install it with setup.py
+
+::
+    
+    jython setup.py install
 
 Usage
 -----
@@ -273,6 +286,24 @@ cheese shop, and there is just one command for everything
 
     pip install [your-package-name]
 
+
+Embedded dependency helper
+--------------------------
+
+jip.embed is available for both virtualenv and global installation.
+You can descirbe Java dependency in you code, then it will be 
+resolved on the fly.
+jip.embed is inspired by Groovy's @Grab.
+
+::
+    
+    from jip.embed import require
+
+    require('commons-lang:commons-lang:2.6')
+    from org.apache.commons.lang import StringUtils
+
+    StringUtils.reverse('jip rocks')
+
 Contact
 -------
 
@@ -284,8 +315,21 @@ also follow `@Sunng <http://twitter.com/Sunng/>`_ on twitter.
 Change Notes
 ------------
 
-0.5.1 (2011-05-14)
+0.7 (2011-06-11)
 ~~~~~~~~~~~~~~~~
+
+- All new jip.embed and global installation
+- enhanced search
+- dry-run option for ``install``, ``deps`` and ``resolve``
+- exclusion for ``install`` command and jip.dist
+- local maven repository is disabled by default
+- improved dependency resolving speed  
+- jip now maintains a local cache of jars and poms in ``$HOME/.jip/cache/``
+- use argparse for better command-line ui  
+- add some test cases
+
+0.5.1 (2011-05-14)
+~~~~~~~~~~~~~~~~~~
 
 - Artifact jar package download in paralell
 - User-agent header included in http request
