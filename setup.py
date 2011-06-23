@@ -53,15 +53,14 @@ setup_args=dict(
             'Operating System :: POSIX']
 )
 
-if is_virtualenv():
-    setup_args['scripts'] = ["scripts/jython-all"]
-    setup_args['install_requires'] = ['simplejson', 'argparse']
-    setup_args['entry_points'] = {
-                'console_scripts' : [
-                    'jip = jip.main:main'
-                ]
-            }
-    setup_args['data_files'] = [('data', ['data/pom.tpl'])]
+setup_args['scripts'] = ["scripts/jython-all"]
+setup_args['install_requires'] = ['simplejson', 'argparse']
+setup_args['entry_points'] = {
+            'console_scripts' : [
+                'jip = jip.main:main'
+            ]
+        }
+setup_args['data_files'] = [('data', ['data/pom.tpl'])]
 
 setup(**setup_args)
 
