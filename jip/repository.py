@@ -185,7 +185,7 @@ class MavenHttpRemoteRepos(MavenRepos):
         maven_path = self.get_artifact_uri(artifact, 'jar')
         logger.info('[Downloading] jar from %s' % maven_path)
         local_jip_path = local_path+"/"+artifact.to_jip_name()
-        local_f = open(local_jip_path, 'w')
+        local_f = open(local_jip_path, 'wb')
         ## download jar asyncly
         download(maven_path, local_f, True)
         ##logger.info('[Finished] %s downloaded ' % maven_path)
