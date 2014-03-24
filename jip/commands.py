@@ -185,7 +185,7 @@ def clean():
 ])
 def resolve(pomfile, options={}):
     """ Resolve and download dependencies in pom file """
-    pomfile = open(pomfile, 'r')
+    pomfile = open(pomfile, 'rb')
     pomstring = pomfile.read()
     pom = Pom(pomstring)
     ## custom defined repositories
@@ -298,7 +298,7 @@ def freeze():
     """ Dump current configuration to a pom file """
     dependencies = index_manager.to_pom()
     repositories = repos_manager.to_pom()
-    template = Template(open(os.path.join(__path__[0], '../data/pom.tpl')).read())
+    template = Template(open(os.path.join(__path__[0], '../data/pom.tpl'), 'rb').read())
     print template.substitute({'dependencies': dependencies,
         'repositories': repositories})
 
