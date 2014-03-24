@@ -79,13 +79,13 @@ class IndexManager(object):
         self.committed = False
         if os.path.exists(self.filepath):
 #            try:
-#                pickledata = open(self.filepath, 'r').read()
+#                pickledata = open(self.filepath, 'rb').read()
 #                artifacts = pickle.loads(pickledata)
 #                for artifact in artifacts: self.installed.add(artifact)
 #                self.keep_consistent()
 #            except:
 #                pass
-             pickledata = open(self.filepath, 'r').read()
+             pickledata = open(self.filepath, 'rb').read()
              artifacts = pickle.loads(pickledata)
              for artifact in artifacts: self.installed.add(artifact)
              self.keep_consistent()

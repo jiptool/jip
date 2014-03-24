@@ -159,7 +159,7 @@ class MavenFileSystemRepos(MavenRepos):
         maven_file_path = self.get_artifact_uri(artifact, 'pom')
         logger.info('[Checking] pom file %s'% maven_file_path)
         if os.path.exists(maven_file_path):
-            pom_file = open(maven_file_path, 'r')
+            pom_file = open(maven_file_path, 'rb')
             data =  pom_file.read()
             pom_file.close()
             return data
