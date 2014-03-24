@@ -69,7 +69,7 @@ class IndexManager(object):
         try:
             self.persist_lock.acquire()
 
-            picklefile = open(self.filepath, 'w')
+            picklefile = open(self.filepath, 'wb')
             pickle.dump(self.installed, picklefile)
             picklefile.close()
         finally:
