@@ -28,7 +28,7 @@ import shutil
 class CacheRepository(MavenRepos):
     def __init__(self):
         self.name = 'cache'
-        self.uri = os.path.expanduser('~/.jip/cache')
+        self.uri = os.path.expanduser(os.path.join('~', '.jip', 'cache'))
         if not os.path.exists(self.uri):
             os.makedirs(self.uri)
 

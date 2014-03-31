@@ -35,7 +35,7 @@ from jip import logger
 from jip.util import DownloadException, download, download_string, get_virtual_home
 
 class RepositoryManager(object):
-    MAVEN_LOCAL_REPOS = ('local', os.path.expanduser('~/.m2/repository'), 'local')
+    MAVEN_LOCAL_REPOS = ('local', os.path.expanduser(os.path.join('~', '.m2', 'repository')), 'local')
     MAVEN_PUBLIC_REPOS = ('public', "http://repo1.maven.org/maven2/", 'remote')
     def __init__(self):
         self.repos = []
@@ -59,7 +59,7 @@ class RepositoryManager(object):
     def _load_config(self):
         config_file_path = os.path.join(get_virtual_home(), '.jip')
         if not os.path.exists(config_file_path):
-            config_file_path = os.path.expanduser('~/.jip')
+            config_file_path = os.path.expanduser(os.path.join('~', '.jip'))
         if os.path.exists(config_file_path):
             config = ConfigParser()
             config.read(config_file_path)
