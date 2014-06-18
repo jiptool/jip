@@ -35,7 +35,7 @@ from jip import logger
 from jip.util import DownloadException, download, download_string, get_virtual_home
 
 class RepositoryManager(object):
-    MAVEN_LOCAL_REPOS = ('local', os.path.expanduser('~/.m2/repository'), 'local')
+    MAVEN_LOCAL_REPOS = ('local', os.path.expanduser(os.path.join('~', '.m2', 'repository')), 'local')
     MAVEN_PUBLIC_REPOS = ('public', "http://repo1.maven.org/maven2/", 'remote')
     def __init__(self):
         self.repos = []
@@ -59,7 +59,7 @@ class RepositoryManager(object):
     def _load_config(self):
         config_file_path = os.path.join(get_virtual_home(), '.jip')
         if not os.path.exists(config_file_path):
-            config_file_path = os.path.expanduser('~/.jip')
+            config_file_path = os.path.expanduser(os.path.join('~', '.jip'))
         if os.path.exists(config_file_path):
             config = ConfigParser()
             config.read(config_file_path)
@@ -147,7 +147,7 @@ class MavenFileSystemRepos(MavenRepos):
         maven_file_path = self.get_artifact_uri(artifact, 'jar')
         logger.info("[Checking] jar package from %s" % self.name)
         if os.path.exists(maven_file_path):
-            local_jip_path = local_path+"/"+artifact.to_jip_name()
+            local_jip_path = os.path.join(local_path, artifact.to_jip_name())
             logger.info("[Downloading] %s" % maven_file_path)
             shutil.copy(maven_file_path, local_jip_path)
             logger.info("[Finished] %s completed" % local_jip_path)
@@ -159,7 +159,7 @@ class MavenFileSystemRepos(MavenRepos):
         maven_file_path = self.get_artifact_uri(artifact, 'pom')
         logger.info('[Checking] pom file %s'% maven_file_path)
         if os.path.exists(maven_file_path):
-            pom_file = open(maven_file_path, 'r')
+            pom_file = open(maven_file_path, 'rb')
             data =  pom_file.read()
             pom_file.close()
             return data
@@ -184,8 +184,8 @@ class MavenHttpRemoteRepos(MavenRepos):
     def download_jar(self, artifact, local_path):
         maven_path = self.get_artifact_uri(artifact, 'jar')
         logger.info('[Downloading] jar from %s' % maven_path)
-        local_jip_path = local_path+"/"+artifact.to_jip_name()
-        local_f = open(local_jip_path, 'w')
+        local_jip_path = os.path.join(local_path, artifact.to_jip_name())
+        local_f = open(local_jip_path, 'wb')
         ## download jar asyncly
         download(maven_path, local_f, True)
         ##logger.info('[Finished] %s downloaded ' % maven_path)

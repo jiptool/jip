@@ -28,7 +28,7 @@ import shutil
 class CacheRepository(MavenRepos):
     def __init__(self):
         self.name = 'cache'
-        self.uri = os.path.expanduser('~/.jip/cache')
+        self.uri = os.path.expanduser(os.path.join('~', '.jip', 'cache'))
         if not os.path.exists(self.uri):
             os.makedirs(self.uri)
 
@@ -52,7 +52,7 @@ class CacheRepository(MavenRepos):
     def download_pom(self, artifact):
         path = self.get_artifact_uri(artifact, 'pom')
         if os.path.exists(path):
-            f = open(path, 'r')
+            f = open(path, 'rb')
             data = f.read()
             f.close()
             return data
@@ -61,7 +61,7 @@ class CacheRepository(MavenRepos):
 
     def put_pom(self, artifact, data):
         path = self.get_artifact_uri(artifact, 'pom')
-        f = open(path, 'w')
+        f = open(path, 'wb')
         f.write(data)
         f.close()
 
