@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-./mvnget.sh $JYTHON
+./ci/mvnget.sh $JYTHON
 OLD_VIRTUAL_ENV=$VIRTUAL_ENV
 java -jar ${_JYTHON_BASENAME}.jar -s -d $HOME/jython
 
