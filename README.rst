@@ -1,6 +1,9 @@
 jip
 ===
 
+.. image:: https://img.shields.io/travis/baztian/jip/master.svg
+   :target: https://travis-ci.org/baztian/jip
+
 Jip is the jython equivalent of pip to python. It will resolve
 dependencies and download jars for your jython environment.
 
