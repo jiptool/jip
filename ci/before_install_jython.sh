@@ -1,9 +1,8 @@
 #!/bin/bash
 set -e
 
-./ci/mvnget.sh $JYTHON
-OLD_VIRTUAL_ENV=$VIRTUAL_ENV
-java -jar ${_JYTHON_BASENAME}.jar -s -d $HOME/jython
+JYTHON_JAR=$(./ci/mvnget.sh $JYTHON)
+java -jar ${JYTHON_JAR} -s -d $HOME/jython
 
 BEFORE_PY_26=$($HOME/jython/bin/jython -c "import sys; print sys.version_info < (2, 6)")
 if [ "$BEFORE_PY_26" == "True" ]
