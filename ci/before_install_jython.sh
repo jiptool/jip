@@ -1,13 +1,7 @@
 #!/bin/bash
 set -e
 
-GROUP_ID=${JYTHON%%:*}
-NON_GROUP_ID=${JYTHON#*:}
-ARTIFACT_NAME=`python -c "import re;print re.search(r':(.*):', '$JYTHON').group(1)"`
-_PATH=${GROUP_ID/./\/}/$ARTIFACT_NAME
-_JYTHON_BASENAME=${NON_GROUP_ID/:/-}
-VERSION=${JYTHON##*:}
-wget http://search.maven.org/remotecontent?filepath=${_PATH}/$VERSION/${_JYTHON_BASENAME}.jar -O ${_JYTHON_BASENAME}.jar
+./mvnget.sh $JYTHON
 OLD_VIRTUAL_ENV=$VIRTUAL_ENV
 java -jar ${_JYTHON_BASENAME}.jar -s -d $HOME/jython
 
