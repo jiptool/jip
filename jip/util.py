@@ -23,7 +23,6 @@
 import os
 import sys
 
-import requests
 import time
 try:
     from io import StringIO
@@ -44,6 +43,7 @@ class DownloadException(Exception):
     pass
 
 def download(url, target, async=False, close_target=False, quiet=True):
+    import requests
     ### download file to target (target is a file-like object)
     if async:
         pool.submit(url, target)
@@ -66,6 +66,7 @@ def download(url, target, async=False, close_target=False, quiet=True):
             raise DownloadException(url, e)
 
 def download_string(url):
+    import requests
     source = requests.get(url, headers={ 'User-Agent': JIP_USER_AGENT})
     data = source.text
     source.close()
