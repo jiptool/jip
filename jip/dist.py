@@ -61,7 +61,7 @@ def requires_java_install():
 class install(_install):
     def run(self):
         _install.run(self)
-        print 'running jip_resolve'
+        logger.info('running jip_resolve')
         self.run_command('resolve')
 
 class resolve(_Command):
