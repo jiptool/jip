@@ -318,6 +318,11 @@ also follow `@Sunng <http://twitter.com/Sunng/>`_ on twitter.
 Change Notes
 ------------
 
+Not released
+~~~~~~~~~~~~
+
+- Python 3 support
+
 0.7 (2011-06-11)
 ~~~~~~~~~~~~~~~~
 
