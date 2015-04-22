@@ -1,0 +1,20 @@
+language: python
+
+sudo: false
+
+python:
+  - '2.7'
+
+matrix:
+  include:
+    - python: 2.7
+      env: JYTHON=org.python:jython-installer:2.7-rc1
+
+before_install:
+  - if [ -n "$JYTHON" ]; then ./ci/before_install_jython.sh; source $HOME/myvirtualenv/bin/activate ;fi
+
+install:
+  - pip install -e .
+
+script:
+  - python -m unittest discover -s test/ -p '*test.py'
