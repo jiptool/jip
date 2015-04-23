@@ -50,7 +50,7 @@ def main():
     args = vars(parser.parse_args())
     cmd = args.pop('command')
     options = {}
-    for k in args.keys():
+    for k in list(args.keys()):
         if k.startswith('options.'):
             v = args.pop(k)
             k = k[k.index('.')+1:]

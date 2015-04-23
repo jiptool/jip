@@ -39,7 +39,7 @@ setup_args=dict(
         author="Sun Ning",
         author_email="classicning@gmail.com",
         url="https://github.com/sunng87/jip",
-        description="jip installs packages, for Jython",
+        description="jip installs packages, for Jython and Python",
         license='mit',
         packages=['jip'],
         long_description=long_description,
@@ -47,14 +47,15 @@ setup_args=dict(
             'Intended Audience :: Developers',
             'License :: OSI Approved :: MIT License',
             'Topic :: Software Development :: Build Tools',
-            'Programming Language :: Python :: 2.5',
+            'Programming Language :: Python :: 2.7',
+            'Programming Language :: Python :: 3.4',
             'Programming Language :: Java',
             'Environment :: Console',
             'Operating System :: POSIX']
 )
 
 setup_args['scripts'] = ["scripts/jython-all"]
-setup_args['install_requires'] = ['simplejson', 'argparse']
+setup_args['install_requires'] = ['simplejson', 'argparse', 'requests']
 setup_args['entry_points'] = {
             'console_scripts' : [
                 'jip = jip.main:main'
