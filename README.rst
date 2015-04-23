@@ -318,10 +318,15 @@ also follow `@Sunng <http://twitter.com/Sunng/>`_ on twitter.
 Change Notes
 ------------
 
-Not released
-~~~~~~~~~~~~
+0.9 (2015-04-23)
+~~~~~~~~~~~~~~~~
 
 - Python 3 support
+
+0.8 (2014-03-31)
+~~~~~~~~~~~~~~~~
+
+- Windows support
 
 0.7 (2011-06-11)
 ~~~~~~~~~~~~~~~~
