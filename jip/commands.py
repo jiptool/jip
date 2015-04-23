@@ -158,7 +158,7 @@ def _install(artifacts, exclusions=[], options={}):
     else:
         logger.info("[Install] Artifacts to install:")
         for artifact in download_list:
-            print artifact
+            logger.info(artifact)
 
 @command(options=[
     ("dry-run", 0, "perform a command without actual download", bool),
@@ -185,7 +185,7 @@ def clean():
 ])
 def resolve(pomfile, options={}):
     """ Resolve and download dependencies in pom file """
-    pomfile = open(pomfile, 'rb')
+    pomfile = open(pomfile, 'r')
     pomstring = pomfile.read()
     pom = Pom(pomstring)
     ## custom defined repositories
@@ -266,7 +266,7 @@ def search(query="", options={}):
     if len(results) > 0:
         for item in results:
             g,a,v,p = item
-            print "%s-%s (%s)\n\t%s:%s:%s" % (a,v,p,g,a,v)
+            logger.info("%s-%s (%s)\n\t%s:%s:%s" % (a,v,p,g,a,v))
     else:
         logger.info('[Finished] nothing returned by criteria "%s"' % query)
 
@@ -275,7 +275,7 @@ def list():
     """ List current installed artifacts """
     index_manager.keep_consistent()
     for a in index_manager.installed:
-        print "%s" % a
+        logger.info("%s" % a)
 
 @command()
 def remove(artifact_id):
@@ -298,7 +298,6 @@ def freeze():
     """ Dump current configuration to a pom file """
     dependencies = index_manager.to_pom()
     repositories = repos_manager.to_pom()
-    template = Template(open(os.path.join(__path__[0], '../data/pom.tpl'), 'rb').read())
-    print template.substitute({'dependencies': dependencies,
-        'repositories': repositories})
-
+    template = Template(open(os.path.join(__path__[0], '../data/pom.tpl'), 'r').read())
+    logger.info( template.substitute({'dependencies': dependencies,
+        'repositories': repositories}))

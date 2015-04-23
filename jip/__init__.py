@@ -26,6 +26,7 @@ __version__ = JIP_VERSION
 __license__ = 'MIT'
 import logging
 logging.basicConfig(level=logging.INFO, format="\033[1m%(name)s\033[0m %(message)s")
+logging.getLogger("requests").setLevel(logging.WARNING)
 logger = logging.getLogger('jip')
 
 

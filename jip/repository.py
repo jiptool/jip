@@ -20,7 +20,10 @@
 # SOFTWARE.
 #
 
-from ConfigParser import ConfigParser
+try:
+    from configparser import ConfigParser
+except ImportError:
+    from ConfigParser import ConfigParser
 from string import Template
 import os
 import locale
@@ -28,7 +31,12 @@ import shutil
 import stat
 import time
 import hashlib
-import urllib2
+try:
+    import urllib.error as urlerror
+    import urllib.request as urlrequest
+except ImportError:
+    import urllib2 as urlerror
+    import urllib2 as urlrequest
 from xml.etree import ElementTree
 
 from jip import logger
@@ -159,7 +167,7 @@ class MavenFileSystemRepos(MavenRepos):
         maven_file_path = self.get_artifact_uri(artifact, 'pom')
         logger.info('[Checking] pom file %s'% maven_file_path)
         if os.path.exists(maven_file_path):
-            pom_file = open(maven_file_path, 'rb')
+            pom_file = open(maven_file_path, 'r')
             data =  pom_file.read()
             pom_file.close()
             return data
@@ -252,7 +260,7 @@ class MavenHttpRemoteRepos(MavenRepos):
     def last_modified(self, artifact):
         metadata_path = self.get_metadata_path(artifact) 
         try:
-            fd = urllib2.urlopen(metadata_path)
+            fd = urlrequest.urlopen(metadata_path)
             if 'last-modified' in fd.headers:
                 ts = fd.headers['last-modified']
                 fd.close()
@@ -262,7 +270,7 @@ class MavenHttpRemoteRepos(MavenRepos):
             else:
                 fd.close()
                 return 0
-        except urllib2.HTTPError:
+        except urlerror.HTTPError:
             return None
 
     def download_check_sum(self, checksum_type, origin_file_name):
