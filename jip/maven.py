@@ -25,7 +25,7 @@ import os
 import sys
 import re
 from xml.etree import ElementTree
-from string import Template
+from string import Template, whitespace
 
 from . import logger, repos_manager, cache_manager
 
@@ -85,6 +85,11 @@ class Artifact(object):
         artifact = Artifact(group, artifact, version)
         return artifact
 
+
+class WhitespaceNormalizer(ElementTree.TreeBuilder):   # The target object of the parser
+     def data(self, data):
+         data=data.strip(whitespace)         #strip whitespace at start and end of string
+         super(WhitespaceNormalizer,self).data(data)  
     
 class Pom(object):
     def __init__(self, pom_string):
@@ -98,7 +103,7 @@ class Pom(object):
         if self.eletree is None:
             ## we use this dirty method to remove namesapce attribute so that elementtree will use default empty namespace
             pom_string = re.sub(r"<project(.|\s)*?>", '<project>', self.pom_string, 1)
-            self.eletree = ElementTree.fromstring(pom_string)
+            self.eletree = ElementTree.XML(pom_string, ElementTree.XMLParser(target=WhitespaceNormalizer()))
         return self.eletree
 
     def get_parent_pom(self):
