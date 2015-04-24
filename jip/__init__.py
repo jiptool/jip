@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-JIP_VERSION = '0.9.1'
+JIP_VERSION = '0.9.2'
 __author__ = 'Sun Ning <classicning@gmail.com>'
 __version__ = JIP_VERSION
 __license__ = 'MIT'
