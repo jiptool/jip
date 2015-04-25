@@ -7,8 +7,9 @@ def is_jython():
     return sys.platform.lower().startswith('java')
 
 class JipRequireTests(unittest.TestCase):
-    @unittest.skipUnless(is_jython(), "requires jython")
     def testRequire(self):
+        if is_jython():
+            return
         require("commons-lang:commons-lang:2.6")
         from org.apache.commons.lang import StringUtils
 

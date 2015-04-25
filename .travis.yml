@@ -19,4 +19,4 @@ install:
   - pip install -e .
 
 script:
-  - python -m unittest discover -s test/ -p '*test.py'
+  - python test/testsuite.py
