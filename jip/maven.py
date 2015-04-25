@@ -89,7 +89,7 @@ class Artifact(object):
 class WhitespaceNormalizer(ElementTree.TreeBuilder):   # The target object of the parser
      def data(self, data):
          data=data.strip(whitespace)         #strip whitespace at start and end of string
-         super(WhitespaceNormalizer,self).data(data)  
+         return super(WhitespaceNormalizer,self).data(data)  
     
 class Pom(object):
     def __init__(self, pom_string):
