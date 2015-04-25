@@ -86,7 +86,7 @@ class Artifact(object):
         return artifact
 
 
-class WhitespaceNormalizer(ElementTree.TreeBuilder):   # The target object of the parser
+class WhitespaceNormalizer(ElementTree.TreeBuilder, object):   # The target object of the parser
      def data(self, data):
          data=data.strip(whitespace)         #strip whitespace at start and end of string
          return super(WhitespaceNormalizer,self).data(data)  
