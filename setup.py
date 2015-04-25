@@ -19,6 +19,7 @@
 # SOFTWARE.
 #
 
+import sys
 
 try:
     from setuptools import setup
@@ -47,6 +48,7 @@ setup_args=dict(
             'Intended Audience :: Developers',
             'License :: OSI Approved :: MIT License',
             'Topic :: Software Development :: Build Tools',
+            'Programming Language :: Python :: 2.6',
             'Programming Language :: Python :: 2.7',
             'Programming Language :: Python :: 3.4',
             'Programming Language :: Java',
@@ -55,7 +57,10 @@ setup_args=dict(
 )
 
 setup_args['scripts'] = ["scripts/jython-all"]
-setup_args['install_requires'] = ['simplejson', 'argparse', 'requests']
+requires = ['requests']
+if sys.version_info < (2, 7):
+    requires.append('argparse')
+setup_args['install_requires'] = requires
 setup_args['entry_points'] = {
             'console_scripts' : [
                 'jip = jip.main:main'
