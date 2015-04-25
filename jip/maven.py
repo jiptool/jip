@@ -103,7 +103,7 @@ class Pom(object):
         if self.eletree is None:
             ## we use this dirty method to remove namesapce attribute so that elementtree will use default empty namespace
             pom_string = re.sub(r"<project(.|\s)*?>", '<project>', self.pom_string, 1)
-            self.eletree = ElementTree.XML(pom_string, ElementTree.XMLParser(target=WhitespaceNormalizer()))
+            self.eletree = ElementTree.XMLParser(target=WhitespaceNormalizer()).feed(pom_string).close()
         return self.eletree
 
     def get_parent_pom(self):
