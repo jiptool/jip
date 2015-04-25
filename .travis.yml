@@ -14,6 +14,7 @@ matrix:
 
 before_install:
   - if [ -n "$JYTHON" ]; then ./ci/before_install_jython.sh; source $HOME/myvirtualenv/bin/activate ;fi
+  - pip install unittest2
 
 install:
   - pip install -e .
