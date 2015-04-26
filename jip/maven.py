@@ -86,10 +86,10 @@ class Artifact(object):
         return artifact
 
 
-class WhitespaceNormalizer(ElementTree.TreeBuilder):   # The target object of the parser
+class WhitespaceNormalizer(ElementTree.TreeBuilder, object):   # The target object of the parser
      def data(self, data):
          data=data.strip(whitespace)         #strip whitespace at start and end of string
-         super(WhitespaceNormalizer,self).data(data)  
+         return super(WhitespaceNormalizer,self).data(data)  
     
 class Pom(object):
     def __init__(self, pom_string):
@@ -103,7 +103,9 @@ class Pom(object):
         if self.eletree is None:
             ## we use this dirty method to remove namesapce attribute so that elementtree will use default empty namespace
             pom_string = re.sub(r"<project(.|\s)*?>", '<project>', self.pom_string, 1)
-            self.eletree = ElementTree.XML(pom_string, ElementTree.XMLParser(target=WhitespaceNormalizer()))
+            parser = ElementTree.XMLParser(target=WhitespaceNormalizer())
+            parser.feed(pom_string)
+            self.eletree = parser.close()
         return self.eletree
 
     def get_parent_pom(self):

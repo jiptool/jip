@@ -24,7 +24,8 @@ try:
     import urllib.parse as urlparse
 except ImportError:
     import urllib as urlparse
-import simplejson as json
+try: import simplejson as json
+except ImportError: import json
 from jip.util import download_string
 
 class SearchProvider(object):
