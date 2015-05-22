@@ -253,9 +253,11 @@ class Pom(object):
         if groupId is None:
             groupId = eletree.findtext('parent/groupId')
 
-        properties["project.groupId"] = groupId
+        properties["project.parent.version"] = eletree.findtext('parent/version')
+        properties["project.parent.groupId"] = eletree.findtext('parent/groupId')
+        properties["project.groupId"] = self.__resolve_placeholder(groupId, properties)
         properties["project.artifactId"] = artifactId
-        properties["project.version"] = version
+        properties["project.version"] = self.__resolve_placeholder(version, properties)
 
         properties["pom.groupId"] = groupId
         properties["pom.artifactId"] = artifactId
