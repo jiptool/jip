@@ -67,8 +67,8 @@ class Artifact(object):
     def __repr__(self):
         return self.__str__()
 
-    def __hash__(self):
-        return self.group.__hash__()*13+self.artifact.__hash__()*7+self.version.__hash__()
+#    def __hash__(self):
+#        return self.group.__hash__()*13+self.artifact.__hash__()*7+self.version.__hash__()
 
     def is_snapshot(self):
         return self.version.find('SNAPSHOT') > 0
@@ -251,9 +251,11 @@ class Pom(object):
         if groupId is None:
             groupId = eletree.findtext('parent/groupId')
 
-        properties["project.groupId"] = groupId
+        properties["project.parent.version"] = eletree.findtext('parent/version')
+        properties["project.parent.groupId"] = eletree.findtext('parent/groupId')
+        properties["project.groupId"] = self.__resolve_placeholder(groupId, properties)
         properties["project.artifactId"] = artifactId
-        properties["project.version"] = version
+        properties["project.version"] = self.__resolve_placeholder(version, properties)
 
         properties["pom.groupId"] = groupId
         properties["pom.artifactId"] = artifactId
