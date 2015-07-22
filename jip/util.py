@@ -62,7 +62,8 @@ def download(url, target, async=False, close_target=False, quiet=True):
             t1 = time.time()
             if not quiet:
                 logger.info('[Downloading] Download %s completed in %f secs' % (url, (t1-t0)))
-        except requests.exceptions.RequestException as e:
+        except requests.exceptions.RequestException:
+            _, e, _ = sys.exc_info()
             raise DownloadException(url, e)
 
 def download_string(url):
