@@ -1,2 +1,6 @@
 vvangelovski (Vasil Vangelovski) https://github.com/vvangelovski
-    patch for maven dependency exclusion and some bugfix
+    patch for maven dependency exclusion and some bugfix]
+reckart (Richard Eckart de Castilho) https://github.com/reckart
+    patch for Windows support and bugfix
+baztian https://github.com/baztian
+    patch for Python 3 support

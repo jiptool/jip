@@ -25,7 +25,7 @@ import os
 import sys
 import re
 from xml.etree import ElementTree
-from string import Template
+from string import Template, whitespace
 
 from . import logger, repos_manager, cache_manager
 
@@ -67,8 +67,8 @@ class Artifact(object):
     def __repr__(self):
         return self.__str__()
 
-#    def __hash__(self):
-#        return self.group.__hash__()*13+self.artifact.__hash__()*7+self.version.__hash__()
+    def __hash__(self):
+        return self.group.__hash__()*13+self.artifact.__hash__()*7+self.version.__hash__()
 
     def is_snapshot(self):
         return self.version.find('SNAPSHOT') > 0
@@ -85,6 +85,11 @@ class Artifact(object):
         artifact = Artifact(group, artifact, version)
         return artifact
 
+
+class WhitespaceNormalizer(ElementTree.TreeBuilder, object):   # The target object of the parser
+     def data(self, data):
+         data=data.strip(whitespace)         #strip whitespace at start and end of string
+         return super(WhitespaceNormalizer,self).data(data)  
     
 class Pom(object):
     def __init__(self, pom_string):
@@ -98,7 +103,9 @@ class Pom(object):
         if self.eletree is None:
             ## we use this dirty method to remove namesapce attribute so that elementtree will use default empty namespace
             pom_string = re.sub(r"<project(.|\s)*?>", '<project>', self.pom_string, 1)
-            self.eletree = ElementTree.fromstring(pom_string)
+            parser = ElementTree.XMLParser(target=WhitespaceNormalizer())
+            parser.feed(pom_string)
+            self.eletree = parser.close()
         return self.eletree
 
     def get_parent_pom(self):
@@ -246,9 +253,11 @@ class Pom(object):
         if groupId is None:
             groupId = eletree.findtext('parent/groupId')
 
-        properties["project.groupId"] = groupId
+        properties["project.parent.version"] = eletree.findtext('parent/version')
+        properties["project.parent.groupId"] = eletree.findtext('parent/groupId')
+        properties["project.groupId"] = self.__resolve_placeholder(groupId, properties)
         properties["project.artifactId"] = artifactId
-        properties["project.version"] = version
+        properties["project.version"] = self.__resolve_placeholder(version, properties)
 
         properties["pom.groupId"] = groupId
         properties["pom.artifactId"] = artifactId

@@ -1,8 +1,16 @@
-import unittest
+import sys
+if sys.version_info < (2, 7):
+    import unittest2 as unittest
+else:
+    import unittest
 
 from jip.embed import require
 
+def is_jython():
+    return sys.platform.lower().startswith('java')
+
 class JipRequireTests(unittest.TestCase):
+    @unittest.skipUnless(is_jython(), "requires jython")
     def testRequire(self):
         require("commons-lang:commons-lang:2.6")
         from org.apache.commons.lang import StringUtils
@@ -12,4 +20,3 @@ class JipRequireTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

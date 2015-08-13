@@ -23,11 +23,15 @@
 import os
 import sys
 
-import urllib
-import urllib2
 import time
-from StringIO import StringIO
-import Queue
+try:
+    from io import StringIO
+except ImportError:
+    from StringIO import StringIO
+try:
+    import queue
+except ImportError:
+    import Queue as queue
 import threading
 
 from jip import JIP_VERSION, logger
@@ -39,43 +43,39 @@ class DownloadException(Exception):
     pass
 
 def download(url, target, async=False, close_target=False, quiet=True):
+    import requests
     ### download file to target (target is a file-like object)
     if async:
         pool.submit(url, target)
     else:
-        request = urllib2.Request(url=url)
-        request.add_header('User-Agent', JIP_USER_AGENT)
         try:
             t0 = time.time()
-            source = urllib2.urlopen(request)
-            size = source.headers.getheader('Content-Length')
+            source = requests.get(url, headers={ 'User-Agent': JIP_USER_AGENT})
+            size = source.headers['Content-Length']
             if not quiet:
                 logger.info('[Downloading] %s %s bytes to download' % (url, size))
-            buf=source.read(BUF_SIZE)
-            while len(buf) > 0:
+            for buf in source.iter_content(BUF_SIZE):
                 target.write(buf)
-                buf = source.read(BUF_SIZE)
             source.close()
             if close_target:
                 target.close()
             t1 = time.time()
             if not quiet:
                 logger.info('[Downloading] Download %s completed in %f secs' % (url, (t1-t0)))
-        except urllib2.HTTPError, e:
-            raise DownloadException(url, e)
-        except urllib2.URLError, e:
+        except requests.exceptions.RequestException:
+            _, e, _ = sys.exc_info()
             raise DownloadException(url, e)
 
 def download_string(url):
-    buf = StringIO()
-    download(url, buf)
-    data = buf.getvalue()
-    buf.close()
+    import requests
+    source = requests.get(url, headers={ 'User-Agent': JIP_USER_AGENT})
+    data = source.text
+    source.close()
     return data
 
 class DownloadThreadPool(object):
     def __init__(self, size=3):
-        self.queue = Queue.Queue()
+        self.queue = queue.Queue()
         self.workers = [threading.Thread(target=self._do_work) for _ in range(size)]
         self.initialized = False
 

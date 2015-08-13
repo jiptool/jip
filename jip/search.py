@@ -20,8 +20,12 @@
 # SOFTWARE.
 #
 
-import urllib
-import simplejson as json
+try:
+    import urllib.parse as urlparse
+except ImportError:
+    import urllib as urlparse
+try: import simplejson as json
+except ImportError: import json
 from jip.util import download_string
 
 class SearchProvider(object):
@@ -36,7 +40,7 @@ class SearchProvider(object):
 class SonatypeMavenSearch(SearchProvider):
     query_service = "http://search.maven.org/solrsearch/select?q=%s&rows=%d&wt=json"
     def search(self, query, maxresults=20):
-        query_url = self.query_service % (urllib.quote(query), maxresults)
+        query_url = self.query_service % (urlparse.quote(query), maxresults)
 
         data = download_string(query_url)
         
@@ -44,7 +48,7 @@ class SonatypeMavenSearch(SearchProvider):
 
     def search_group_artifact(self, group, artifact, maxresults=20):
         query = 'g:"%s" AND a:"%s"'%(group, artifact)
-        query_url = self.query_service % (urllib.quote(query), maxresults)
+        query_url = self.query_service % (urlparse.quote(query), maxresults)
         query_url += "&core=gav"
 
         data = download_string(query_url)

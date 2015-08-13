@@ -20,12 +20,13 @@
 # SOFTWARE.
 #
 
-JIP_VERSION = '0.8.2'
+JIP_VERSION = '0.9.5'
 __author__ = 'Sun Ning <classicning@gmail.com>'
 __version__ = JIP_VERSION
 __license__ = 'MIT'
 import logging
 logging.basicConfig(level=logging.INFO, format="\033[1m%(name)s\033[0m %(message)s")
+logging.getLogger("requests").setLevel(logging.WARNING)
 logger = logging.getLogger('jip')
 
 
