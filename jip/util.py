@@ -69,9 +69,12 @@ def download(url, target, async=False, close_target=False, quiet=True):
 def download_string(url):
     import requests
     source = requests.get(url, headers={ 'User-Agent': JIP_USER_AGENT})
-    data = source.text
-    source.close()
-    return data
+    if source.status_code == 200:
+        data = source.text
+        source.close()
+        return data
+    else:
+        return False
 
 class DownloadThreadPool(object):
     def __init__(self, size=3):
@@ -107,13 +110,12 @@ def get_virtual_home():
     else:
         ## fail back to use current directory
         JYTHON_HOME = os.getcwd()
-    return JYTHON_HOME            
+    return JYTHON_HOME
 
 def get_lib_path():
-    JYTHON_HOME = get_virtual_home()        
+    JYTHON_HOME = get_virtual_home()
     DEFAULT_JAVA_LIB_PATH = os.path.join(JYTHON_HOME, 'javalib')
 
     if not os.path.exists(DEFAULT_JAVA_LIB_PATH):
         os.mkdir(DEFAULT_JAVA_LIB_PATH)
-    return DEFAULT_JAVA_LIB_PATH        
-
+    return DEFAULT_JAVA_LIB_PATH
