@@ -41,18 +41,18 @@ class Artifact(object):
 
     def to_jip_name(self, pattern="$artifact-$version.$ext", ext="jar"):
         template = Template(pattern)
-        filename = template.substitute({'group':self.group, 'artifact':self.artifact, 
+        filename = template.substitute({'group':self.group, 'artifact':self.artifact,
                 'version': self.version, 'ext': ext})
         return filename
 
     def to_maven_name(self, ext):
         group = self.group.replace('.', '/')
-        return "%s/%s/%s/%s-%s.%s" % (group, self.artifact, self.version, self.artifact, self.version, ext)
+        return "{}/{}/{}/{}-{}.{}".format(group, self.artifact, self.version, self.artifact, self.version, ext)
 
     def to_maven_snapshot_name(self, ext):
         group = self.group.replace('.', '/')
         version_wo_snapshot = self.version.replace('-SNAPSHOT', '')
-        return "%s/%s/%s/%s-%s-%s-%s.%s" % (group, self.artifact, self.version, self.artifact, version_wo_snapshot,
+        return "{}/{}/{}/{}-{}-{}-{}.{}".format(group, self.artifact, self.version, self.artifact, version_wo_snapshot,
                 self.timestamp, self.build_number, ext)
 
     def __eq__(self, other):
@@ -62,8 +62,8 @@ class Artifact(object):
             return False
 
     def __str__(self):
-        return "%s:%s:%s" % (self.group, self.artifact, self.version)
-        
+        return "{}:{}:{}".format(self.group, self.artifact, self.version)
+
     def __repr__(self):
         return self.__str__()
 
@@ -89,8 +89,8 @@ class Artifact(object):
 class WhitespaceNormalizer(ElementTree.TreeBuilder, object):   # The target object of the parser
      def data(self, data):
          data=data.strip(whitespace)         #strip whitespace at start and end of string
-         return super(WhitespaceNormalizer,self).data(data)  
-    
+         return super(WhitespaceNormalizer,self).data(data)
+
 class Pom(object):
     def __init__(self, pom_string):
         self.pom_string = pom_string
@@ -151,10 +151,20 @@ class Pom(object):
         properties = self.get_properties()
         eletree = self.get_element_tree()
         dependency_management_dependencies = eletree.findall("dependencyManagement/dependencies/dependency")
+
         for dependency in dependency_management_dependencies:
             group_id = self.__resolve_placeholder(dependency.findtext("groupId"), properties)
             artifact_id = self.__resolve_placeholder(dependency.findtext("artifactId"), properties)
             version = self.__resolve_placeholder(dependency.findtext("version"), properties)
+
+            version_val = version
+            while True:
+                try:
+                    version = version_val if version_val != None else version
+                    version_val = properties.get(version_val[2:-1])
+                except TypeError:
+                    break
+
 
             scope = dependency.findtext("scope")
             if scope is not None and scope == 'import':
@@ -192,11 +202,11 @@ class Pom(object):
             version = dependency.findtext("version")
             if version is not None:
                 version = self.__resolve_placeholder(version, props)
-            
+
             scope = dependency.findtext("scope")
             optional = dependency.findtext("optional")
 
-            ### dependency exclusion           
+            ### dependency exclusion
             ### there is no `version` in a exclusion definition
             exclusions = []
             for exclusion in dependency.findall("exclusions/exclusion"):
@@ -284,4 +294,3 @@ class Pom(object):
             uri = repository.findtext("url")
             repos.append((name, uri, "remote"))
         return repos
-
