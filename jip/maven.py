@@ -47,12 +47,12 @@ class Artifact(object):
 
     def to_maven_name(self, ext):
         group = self.group.replace('.', '/')
-        return "{}/{}/{}/{}-{}.{}".format(group, self.artifact, self.version, self.artifact, self.version, ext)
+        return "%s/%s/%s/%s-%s.%s" % (group, self.artifact, self.version, self.artifact, self.version, ext)
 
     def to_maven_snapshot_name(self, ext):
         group = self.group.replace('.', '/')
         version_wo_snapshot = self.version.replace('-SNAPSHOT', '')
-        return "{}/{}/{}/{}-{}-{}-{}.{}".format(group, self.artifact, self.version, self.artifact, version_wo_snapshot,
+        return "%s/%s/%s/%s-%s-%s-%s.%s" % (group, self.artifact, self.version, self.artifact, version_wo_snapshot,
                 self.timestamp, self.build_number, ext)
 
     def __eq__(self, other):
@@ -62,7 +62,7 @@ class Artifact(object):
             return False
 
     def __str__(self):
-        return "{}:{}:{}".format(self.group, self.artifact, self.version)
+        return "%s:%s:%s" % (self.group, self.artifact, self.version)
 
     def __repr__(self):
         return self.__str__()
