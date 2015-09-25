@@ -65,9 +65,9 @@ class RepositoryManager(object):
             logger.debug('[Repository] Added: %s' % repo.name)
 
     def _load_config(self):
-        config_file_path = os.path.join(get_virtual_home(), '.jip')
+        config_file_path = os.path.join(get_virtual_home(), '.jip_config')
         if not os.path.exists(config_file_path):
-            config_file_path = os.path.expanduser(os.path.join('~', '.jip'))
+            config_file_path = os.path.expanduser(os.path.join('~', '.jip_config'))
         if os.path.exists(config_file_path):
             config = ConfigParser()
             config.read(config_file_path)
@@ -111,7 +111,7 @@ class RepositoryManager(object):
 
 ## globals
 repos_manager = RepositoryManager()
-    
+
 class MavenRepos(object):
     def __init__(self, name, uri):
         self.name = name
@@ -141,7 +141,7 @@ class MavenRepos(object):
     def download_check_sum(self, checksum_type, origin_file_name):
         """ return pre calculated checksum value, only avaiable for remote repos """
         pass
-        
+
 class MavenFileSystemRepos(MavenRepos):
     def __init__(self, name, uri):
         MavenRepos.__init__(self, name, uri)
@@ -216,7 +216,8 @@ class MavenHttpRemoteRepos(MavenRepos):
         try:
             logger.info('[Checking] pom file %s'% maven_path)
             data = download_string(maven_path)
-            
+            if not data:
+                raise DownloadException
             ## cache
             self.pom_cache[artifact] = data
 
@@ -238,7 +239,7 @@ class MavenHttpRemoteRepos(MavenRepos):
         return maven_path
 
     def get_snapshot_info(self, artifact):
-        metadata_path = self.get_metadata_path(artifact) 
+        metadata_path = self.get_metadata_path(artifact)
 
         try:
             data = download_string(metadata_path)
@@ -246,19 +247,19 @@ class MavenHttpRemoteRepos(MavenRepos):
             eletree = ElementTree.fromstring(data)
             timestamp = eletree.findtext('versioning/snapshot/timestamp')
             build_number = eletree.findtext('versioning/snapshot/buildNumber')
-            
+
             return (timestamp, build_number)
         except DownloadException:
             return None
 
     def get_metadata_path(self, artifact):
         group = artifact.group.replace('.', '/')
-        metadata_path = "%s/%s/%s/%s/maven-metadata.xml" % (self.uri, group, 
+        metadata_path = "%s/%s/%s/%s/maven-metadata.xml" % (self.uri, group,
                 artifact.artifact, artifact.version)
         return metadata_path
 
     def last_modified(self, artifact):
-        metadata_path = self.get_metadata_path(artifact) 
+        metadata_path = self.get_metadata_path(artifact)
         try:
             fd = urlrequest.urlopen(metadata_path)
             if 'last-modified' in fd.headers:
@@ -297,4 +298,3 @@ class MavenHttpRemoteRepos(MavenRepos):
 
         file_to_check.close()
         return hasher.hexdigest()
-
