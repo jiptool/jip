@@ -161,8 +161,8 @@ You can configure custom maven repository with a dot file, jip will
 search configurations in the following order:
 
 
-1. ``$VIRTUAL_ENV/.jip``, your virtual environment home
-2. ``$HOME/.jip``, your home
+1. ``$VIRTUAL_ENV/.jip_config``, your virtual environment home
+2. ``$HOME/.jip_config``, your home
 
 Here is an example:
 
@@ -180,10 +180,13 @@ Here is an example:
     uri=http://repo1.maven.org/maven2/
     type=remote
 
-Be careful that the .jip file will overwrite default settings, so
-you must include default local and central repository explicitly.
+Be careful that the ``.jip_config`` file will overwrite default settings,
+so you must include default local and central repository explicitly.
 jip will skip repositories once it finds package matches the maven
 coordinator.
+
+Artifacts will be cached at `$HOME/.jip` (`$VIRTUAL_ENV/.jip` if 
+you are using a virtual environment).
 
 From 0.4, you can also define repositories in pom.xml if you use
 the ``resolve`` command. jip will add these custom repositories
