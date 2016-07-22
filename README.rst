@@ -173,7 +173,7 @@ Here is an example:
     type=remote
     
     [repos:local]
-    uri=/home/sun/.m2/repository/
+    uri=~/.m2/repository/
     type=local
     
     [repos:central]
@@ -185,7 +185,7 @@ so you must include default local and central repository explicitly.
 jip will skip repositories once it finds package matches the maven
 coordinator.
 
-Artifacts will be cached at `$HOME/.jip` (`$VIRTUAL_ENV/.jip` if 
+Artifacts will be cached at ``$HOME/.jip`` (``$VIRTUAL_ENV/.jip`` if
 you are using a virtual environment).
 
 From 0.4, you can also define repositories in pom.xml if you use
