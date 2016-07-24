@@ -144,7 +144,7 @@ class MavenRepos(object):
 
 class MavenFileSystemRepos(MavenRepos):
     def __init__(self, name, uri):
-        MavenRepos.__init__(self, name, uri)
+        MavenRepos.__init__(self, name, os.path.expanduser(uri))
 
     def get_artifact_uri(self, artifact, ext):
         maven_name = artifact.to_maven_name(ext)
