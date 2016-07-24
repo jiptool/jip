@@ -28,6 +28,8 @@ try: import simplejson as json
 except ImportError: import json
 from jip.util import download_string
 
+import codecs
+
 class SearchProvider(object):
     def search(self, query, maxresults=20):
         """ Search and return list of tuple(groupId, artifactId, version, packaging)"""
@@ -55,7 +57,8 @@ class SonatypeMavenSearch(SearchProvider):
         return self._parse_results(data, version_name='v')
 
     def _parse_results(self, data, version_name):
-        results = json.loads(data)
+        reader = codecs.getreader("utf-8")
+        results = json.loads(reader(data))
        
         docs = results['response']['docs']
         return [(doc['g'], doc['a'], doc[version_name], doc['p']) for doc in docs]

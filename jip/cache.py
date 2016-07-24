@@ -61,7 +61,7 @@ class CacheRepository(MavenRepos):
 
     def put_pom(self, artifact, data):
         path = self.get_artifact_uri(artifact, 'pom')
-        f = open(path, 'w')
+        f = open(path, 'wb')
         f.write(data)
         f.close()
 
