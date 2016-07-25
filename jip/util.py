@@ -68,10 +68,10 @@ def download(url, target, async=False, close_target=False, quiet=True):
 
 def download_string(url):
     import requests
-    source = requests.get(url, headers={ 'User-Agent': JIP_USER_AGENT})
-    if source.status_code == 200:
-        data = source.text
-        source.close()
+    response = requests.get(url, headers={ 'User-Agent': JIP_USER_AGENT})
+    if response.status_code == 200:
+        data = response.text
+        response.close()
         return data
     else:
         return False
