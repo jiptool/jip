@@ -70,7 +70,7 @@ def download_string(url):
     import requests
     source = requests.get(url, headers={ 'User-Agent': JIP_USER_AGENT})
     if source.status_code == 200:
-        data = source.content
+        data = source.text
         source.close()
         return data
     else:
