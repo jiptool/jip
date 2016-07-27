@@ -4,3 +4,5 @@ reckart (Richard Eckart de Castilho) https://github.com/reckart
     patch for Windows support and bugfix
 baztian https://github.com/baztian
     patch for Python 3 support
+wikier https://github.com/wikier
+    patch for Python 3.4 compatibility and bugfix

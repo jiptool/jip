@@ -3,6 +3,9 @@ jip
 
 .. image:: https://img.shields.io/travis/sunng87/jip/master.svg
    :target: https://travis-ci.org/sunng87/jip
+.. image:: https://img.shields.io/pypi/v/jip.svg?maxAge=2592000   :target: https://pypi.python.org/pypi/jip
+.. image:: https://img.shields.io/pypi/l/jip.svg?maxAge=2592000   :target: 
+
 
 Jip is the jython equivalent of pip to python. It will resolve
 dependencies and download jars for your jython environment.
