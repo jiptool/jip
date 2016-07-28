@@ -324,6 +324,10 @@ also follow `@Sunng <http://twitter.com/Sunng/>`_ on twitter.
 Change Notes
 ------------
 
+### 0.9.8 (2016-07-27)
+
+- Minor fixes
+
 0.9 (2015-04-23)
 ~~~~~~~~~~~~~~~~
 
