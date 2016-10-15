@@ -68,6 +68,9 @@ class Artifact(object):
         return self.__str__()
 
     def __hash__(self):
+        ## python3 set requires a custom hash function to ensure item hash unchanged
+        ## however, python2 pickle module might call this function before internal
+        ## propertoes loaded. So here we return 0 if no key property loaded as a workaround
         if hasattr(self, 'group') and hasattr(self, 'artifact') and hasattr(self, 'version'):
             return self.group.__hash__()*13+self.artifact.__hash__()*7+self.version.__hash__()
         else:
