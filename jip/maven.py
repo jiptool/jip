@@ -67,6 +67,12 @@ class Artifact(object):
     def __repr__(self):
         return self.__str__()
 
+    def __hash__(self):
+        if hasattr(self, 'group') and hasattr(self, 'artifact') and hasattr(self, 'version'):
+            return self.group.__hash__()*13+self.artifact.__hash__()*7+self.version.__hash__()
+        else:
+            return 0
+
     def is_snapshot(self):
         return self.version.find('SNAPSHOT') > 0
 
