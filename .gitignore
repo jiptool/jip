@@ -1,8 +1,9 @@
-build
-dist
+build/
+dist/
+env/
 MANIFEST
 *.class
 *.pyc
 *.swp
 *~
-jip.egg-info
+jip.egg-info/
