@@ -318,13 +318,24 @@ Contact
 
 If you have any problem using jip, or feature request for jip,
 please feel free to fire an issue on
-`github issue tracker <http://github.com/sunng87/jip/issues/>`_. You can
+`github issue tracker <http://github.com/jiptool/jip/issues/>`_. You can
 also follow `@Sunng <http://twitter.com/Sunng/>`_ on twitter.
 
 Change Notes
 ------------
 
-### 0.9.8 (2016-07-27)
+Next version - unreleased
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Fix .jip/cache not being isolated in virtualenv
+
+0.9.9 (2016-10-31)
+~~~~~~~~~~~~~~~~~~
+
+- Fix possible crash
+
+0.9.8 (2016-07-27)
+~~~~~~~~~~~~~~~~~~
 
 - Minor fixes
 
