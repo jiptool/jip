@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/sh
+set -e
 
 ARTIFACT_SPEC=$1
 GROUP_ID=${ARTIFACT_SPEC%%:*}
