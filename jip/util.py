@@ -51,7 +51,7 @@ def download(url, target, async=False, close_target=False, quiet=True):
         try:
             t0 = time.time()
             source = requests.get(url, headers={ 'User-Agent': JIP_USER_AGENT})
-            response.raise_for_status()
+            source.raise_for_status()
             size = source.headers['Content-Length']
             if not quiet:
                 logger.info('[Downloading] %s %s bytes to download' % (url, size))
