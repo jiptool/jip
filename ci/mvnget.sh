@@ -1,9 +1,10 @@
 #!/bin/bash
+set -e
 
 ARTIFACT_SPEC=$1
 GROUP_ID=${ARTIFACT_SPEC%%:*}
 NON_GROUP_ID=${ARTIFACT_SPEC#*:}
-ARTIFACT_NAME=`python -c "import re;print re.search(r':(.*):', '$ARTIFACT_SPEC').group(1)"`
+ARTIFACT_NAME=`python -c "import re;print(re.search(r':(.*):', '$ARTIFACT_SPEC').group(1))"`
 _PATH=${GROUP_ID/./\/}/$ARTIFACT_NAME
 _ARTIFACT_SPEC_BASENAME=${NON_GROUP_ID/:/-}
 VERSION=${ARTIFACT_SPEC##*:}
