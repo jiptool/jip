@@ -4,7 +4,7 @@ jip
 .. image:: https://img.shields.io/travis/jiptool/jip/master.svg
    :target: https://travis-ci.org/jiptool/jip
 .. image:: https://img.shields.io/pypi/v/jip.svg?maxAge=2592000   :target: https://pypi.python.org/pypi/jip
-.. image:: https://img.shields.io/pypi/l/jip.svg?maxAge=2592000   :target: 
+.. image:: https://img.shields.io/pypi/l/jip.svg?maxAge=2592000   :target:
 
 
 Jip is the jython equivalent of pip to python. It will resolve
@@ -47,11 +47,11 @@ Download and install jip with pip:
 Install jip for global jython (since 0.7)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Download jip from `pypi page <http://pypi.python.org/pypi/jip>`_ . 
+Download jip from `pypi page <http://pypi.python.org/pypi/jip>`_ .
 Then install it with setup.py
 
 ::
-    
+
     jython setup.py install
 
 Usage
@@ -143,13 +143,13 @@ Search
 ~~~~~~
 
 You can also search maven central repository with a ``jip search [keyword]``.
-The search service is provided by 
-`Sonatype's official Maven search <http://search.maven.org>`_ . 
+The search service is provided by
+`Sonatype's official Maven search <http://search.maven.org>`_ .
 
 Persist current environment state
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Before you distribute you environment, you can use ``freeze`` to persist 
+Before you distribute you environment, you can use ``freeze`` to persist
 current state into a pom file.
 
 ::
@@ -174,11 +174,11 @@ Here is an example:
     [repos:jboss]
     uri=http://repository.jboss.org/maven2/
     type=remote
-    
+
     [repos:local]
     uri=~/.m2/repository/
     type=local
-    
+
     [repos:central]
     uri=http://repo1.maven.org/maven2/
     type=remote
@@ -200,7 +200,7 @@ Distribution helpers
 
 From 0.4, you can use jip in your setup.py to simplify jython
 source package distribution. Create ``pom.xml`` in the same directory
-with setup.py. Fill it with your Java dependencies in standard way. 
+with setup.py. Fill it with your Java dependencies in standard way.
 In this file, you can also define custom repositories. Here is
 an example:
 
@@ -208,7 +208,7 @@ an example:
 
     <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-        
+
         ...
 
         <dependencies>
@@ -217,7 +217,7 @@ an example:
                 <artifactId>slf4j-api</artifactId>
                 <version>1.6.1</version>
             </dependency>
-    
+
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-log4j12</artifactId>
@@ -225,9 +225,9 @@ an example:
             </dependency>
 
             ...
-    
+
         </dependencies>
-    
+
         <repositories>
             <repository>
                 <id>sonatype-oss-sonatype</id>
@@ -237,15 +237,15 @@ an example:
     </project>
 
 And in your setup.py, use the jip setup wrapper instead of the one
-provided by setuptools or distutils. You can add keyword argument 
+provided by setuptools or distutils. You can add keyword argument
 ``pom`` to specify a custom name of the pom file.
 
 ::
 
     from jip.dist import setup
 
-Other than the traditional pom configuration, jip also allows you to 
-describe dependencies in python. You can define a data structure in 
+Other than the traditional pom configuration, jip also allows you to
+describe dependencies in python. You can define a data structure in
 your ``setup.py`` like:
 
 ::
@@ -263,7 +263,7 @@ your ``setup.py`` like:
         ]
     }
 
-And pass it to jip setup as keyword argument ``requires_java``. Once 
+And pass it to jip setup as keyword argument ``requires_java``. Once
 jip found this argument, it won't try to load a pom file.
 
 ::
@@ -274,7 +274,7 @@ jip found this argument, it won't try to load a pom file.
         requires_java=requires_java,
         ...)
 
-Another ``resolve`` command was added to setuptools, you can use this 
+Another ``resolve`` command was added to setuptools, you can use this
 command to download all dependencies to library path
 
 ::
@@ -284,10 +284,10 @@ command to download all dependencies to library path
 All dependencies will be installed when running
 
 ::
-    
+
     jython setup.py install
 
-So with jip's ``setup()`` wrapper, ``pip`` will automatically install 
+So with jip's ``setup()`` wrapper, ``pip`` will automatically install
 what your package needs. You can publish your package to python
 cheese shop, and there is just one command for everything
 
@@ -300,12 +300,12 @@ Embedded dependency helper
 --------------------------
 
 jip.embed is available for both virtualenv and global installation.
-You can descirbe Java dependency in you code, then it will be 
+You can descirbe Java dependency in you code, then it will be
 resolved on the fly.
 jip.embed is inspired by Groovy's @Grab.
 
 ::
-    
+
     from jip.embed import require
 
     require('commons-lang:commons-lang:2.6')
@@ -324,7 +324,7 @@ also follow `@Sunng <http://twitter.com/Sunng/>`_ on twitter.
 Change Notes
 ------------
 
-Next version - unreleased
+0.9.10 (2017-03-09)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Fix .jip/cache not being isolated in virtualenv
@@ -357,9 +357,9 @@ Next version - unreleased
 - dry-run option for ``install``, ``deps`` and ``resolve``
 - exclusion for ``install`` command and jip.dist
 - local maven repository is disabled by default
-- improved dependency resolving speed  
+- improved dependency resolving speed
 - jip now maintains a local cache of jars and poms in ``$HOME/.jip/cache/``
-- use argparse for better command-line ui  
+- use argparse for better command-line ui
 - add some test cases
 
 0.5.1 (2011-05-14)
@@ -403,5 +403,3 @@ Links
    `Introduction to jip 0.1 <http://sunng.info/blog/jip-0-1/>`_
 -  `Project on Github <http://github.com/sunng87/jip>`_
 -  `Package on Python Cheese Shop <http://pypi.python.org/pypi/jip>`_
-
-
