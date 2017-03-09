@@ -51,6 +51,7 @@ def download(url, target, async=False, close_target=False, quiet=True):
         try:
             t0 = time.time()
             source = requests.get(url, headers={ 'User-Agent': JIP_USER_AGENT})
+            response.raise_for_status()
             size = source.headers['Content-Length']
             if not quiet:
                 logger.info('[Downloading] %s %s bytes to download' % (url, size))
@@ -68,13 +69,13 @@ def download(url, target, async=False, close_target=False, quiet=True):
 
 def download_string(url):
     import requests
-    response = requests.get(url, headers={ 'User-Agent': JIP_USER_AGENT})
-    if response.status_code == 200:
-        data = response.text
-        response.close()
-        return data
-    else:
-        return False
+    try:
+        response = requests.get(url, headers={ 'User-Agent': JIP_USER_AGENT})
+        response.raise_for_status()
+        return response.text
+    except requests.exceptions.RequestException:
+            _, e, _ = sys.exc_info()
+            raise DownloadException(url, e)
 
 class DownloadThreadPool(object):
     def __init__(self, size=3):

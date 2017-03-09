@@ -324,8 +324,13 @@ also follow `@Sunng <http://twitter.com/Sunng/>`_ on twitter.
 Change Notes
 ------------
 
-0.9.10 (2017-03-09)
+Next version (unreleased)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Improve handling of download errors
+
+0.9.10 (2017-03-09)
+~~~~~~~~~~~~~~~~~~~
 
 - Fix .jip/cache not being isolated in virtualenv
 

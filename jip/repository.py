@@ -216,8 +216,6 @@ class MavenHttpRemoteRepos(MavenRepos):
         try:
             logger.info('[Checking] pom file %s'% maven_path)
             data = download_string(maven_path)
-            if not data:
-                raise DownloadException
             ## cache
             self.pom_cache[artifact] = data
 
@@ -278,8 +276,7 @@ class MavenHttpRemoteRepos(MavenRepos):
         """ return pre calculated checksum value, only avaiable for remote repos """
         checksum_url = origin_file_name + "." + checksum_type
         try:
-            data = download_string(checksum_url)
-            return data
+            return download_string(checksum_url)
         except DownloadException:
             return None
 
