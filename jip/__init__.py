@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-JIP_VERSION = '0.9.10.dev1'
+JIP_VERSION = '0.9.10'
 __author__ = 'Sun Ning <classicning@gmail.com>'
 __version__ = JIP_VERSION
 __license__ = 'MIT'
@@ -34,4 +34,3 @@ from jip.repository import repos_manager
 from jip.index import index_manager
 from jip.cache import cache_manager
 from jip.util import pool
-
