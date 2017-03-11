@@ -324,7 +324,7 @@ also follow `@Sunng <http://twitter.com/Sunng/>`_ on twitter.
 Change Notes
 ------------
 
-Next version (unreleased)
+0.9.11 (2017-03-11)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Improve handling of download errors
