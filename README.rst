@@ -324,81 +324,76 @@ also follow `@Sunng <http://twitter.com/Sunng/>`_ on twitter.
 Change Notes
 ------------
 
-0.9.11 (2017-03-11)
-~~~~~~~~~~~~~~~~~~~~~~~~~
+- Next version - unreleased
 
-- Improve handling of download errors
+- 0.9.11 - 2017-03-09
 
-0.9.10 (2017-03-09)
-~~~~~~~~~~~~~~~~~~~
+  - Improve handling of download errors
 
-- Fix .jip/cache not being isolated in virtualenv
+- 0.9.10 - 2017-03-09
 
-0.9.9 (2016-10-31)
-~~~~~~~~~~~~~~~~~~
+  - Fix .jip/cache not being isolated in virtualenv
 
-- Fix possible crash
+- 0.9.9 - 2016-10-31
 
-0.9.8 (2016-07-27)
-~~~~~~~~~~~~~~~~~~
+  - Fix possible crash
 
-- Minor fixes
+- 0.9.8 - 2016-07-27
 
-0.9 (2015-04-23)
-~~~~~~~~~~~~~~~~
+  - Minor fixes
 
-- Python 3 support
+- 0.9 - 2015-04-23
 
-0.8 (2014-03-31)
-~~~~~~~~~~~~~~~~
+  - Python 3 support
 
-- Windows support
+- 0.8 - 2014-03-31
 
-0.7 (2011-06-11)
-~~~~~~~~~~~~~~~~
+  - Windows support
 
-- All new jip.embed and global installation
-- enhanced search
-- dry-run option for ``install``, ``deps`` and ``resolve``
-- exclusion for ``install`` command and jip.dist
-- local maven repository is disabled by default
-- improved dependency resolving speed
-- jip now maintains a local cache of jars and poms in ``$HOME/.jip/cache/``
-- use argparse for better command-line ui
-- add some test cases
+- 0.7 - 2011-06-11
 
-0.5.1 (2011-05-14)
-~~~~~~~~~~~~~~~~~~
+  - All new jip.embed and global installation
+  - enhanced search
+  - dry-run option for ``install``, ``deps`` and ``resolve``
+  - exclusion for ``install`` command and jip.dist
+  - local maven repository is disabled by default
+  - improved dependency resolving speed
+  - jip now maintains a local cache of jars and poms in
+    ``$HOME/.jip/cache/``
+  - use argparse for better command-line ui
+  - add some test cases
 
-- Artifact jar package download in paralell
-- User-agent header included in http request
-- new command `freeze` to dump current state
-- bugfix
+- 0.5.1 - 2011-05-14
 
-0.4 (2011-04-15)
-~~~~~~~~~~~~~~~~
+  - Artifact jar package download in paralell
+  - User-agent header included in http request
+  - new command `freeze` to dump current state
+  - bugfix
 
-- New commands available: ``search``, ``deps``, ``list``, ``remove``
-- New feature ``jip.dist`` for setuptools integration
-- Dependency exclusion support, thanks *vvangelovski*
-- Allow project-scoped repository defined in ``pom.xml`` and ``setup.py``
-- Code refactoring, now programming friendly
-- README converted to reStructuredText
-- Migrate to MIT License
+- 0.4 - 2011-04-15
 
-0.2.1 (2011-04-07)
-~~~~~~~~~~~~~~~~~~
+  - New commands available: ``search``, ``deps``, ``list``, ``remove``
+  - New feature ``jip.dist`` for setuptools integration
+  - Dependency exclusion support, thanks *vvangelovski*
+  - Allow project-scoped repository defined in ``pom.xml`` and
+    ``setup.py``
+  - Code refactoring, now programming friendly
+  - README converted to reStructuredText
+  - Migrate to MIT License
 
-- Improved console output format
-- Correct scope dependency management inheritance
-- Alpha release of snapshot management, you can update a snapshot artifact
-- Environment independent configuration. ``.jip`` for each environment
-- Bug fixes
+- 0.2.1 - 2011-04-07
 
-0.1 (2011-01-04)
-~~~~~~~~~~~~~~~~
+  - Improved console output format
+  - Correct scope dependency management inheritance
+  - Alpha release of snapshot management, you can update a snapshot
+    artifact
+  - Environment independent configuration. ``.jip`` for each
+    environment
+  - Bug fixes
 
-- Initial release
+- 0.1 - 2011-01-04
+
+  - Initial release
 
 Links
 -----
