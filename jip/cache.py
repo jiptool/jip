@@ -19,6 +19,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
+import codecs
 
 from jip.repository import MavenRepos
 from jip.util import get_virtual_home
@@ -54,7 +55,7 @@ class CacheRepository(MavenRepos):
     def download_pom(self, artifact):
         path = self.get_artifact_uri(artifact, 'pom')
         if os.path.exists(path):
-            f = open(path, 'r')
+            f = codecs.open(path, mode='r', encoding='utf-8')
             data = f.read()
             f.close()
             return data
@@ -63,7 +64,7 @@ class CacheRepository(MavenRepos):
 
     def put_pom(self, artifact, data):
         path = self.get_artifact_uri(artifact, 'pom')
-        f = open(path, 'w')
+        f = codecs.open(path, mode='w', encoding='utf-8')
         f.write(data)
         f.close()
 

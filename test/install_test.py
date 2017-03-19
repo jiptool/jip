@@ -18,6 +18,11 @@ class InstallTests(unittest.TestCase):
         artifacts = _resolve_artifacts([junit])
         self.assertEqual(len(artifacts), 1)
 
+    def testResolve2(self):
+        junit = Artifact('de.l3s.boilerpipe', 'boilerpipe', '1.1.0')
+        artifacts = _resolve_artifacts([junit])
+        self.assertEqual(len(artifacts), 1)
+
     def testExclusion(self):
         pig = Artifact('org.apache.pig', 'pig', '0.8.3')
         exclusion = [Artifact(*x.split(":")) for x in ['ant:ant', 'junit:junit','org.eclipse.jdt:core']]
