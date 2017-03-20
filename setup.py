@@ -26,8 +26,6 @@ try:
 except ImportError:
     from distutils.core import setup
 
-from jip import JIP_VERSION as version
-
 long_description = open('README.rst').read()
 
 def is_virtualenv():
@@ -36,7 +34,7 @@ def is_virtualenv():
 
 setup_args=dict(
         name="jip",
-        version=version,
+        version="0.9.11",
         author="Sun Ning",
         author_email="classicning@gmail.com",
         url="https://github.com/sunng87/jip",

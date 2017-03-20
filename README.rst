@@ -326,6 +326,8 @@ Change Notes
 
 - Next version - unreleased
 
+  - Remove jip.JIP_VERSION. Use jip.__version__ if you need it.
+
 - 0.9.11 - 2017-03-09
 
   - Improve handling of download errors

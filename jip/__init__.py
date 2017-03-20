@@ -23,7 +23,6 @@
 __author__ = 'Sun Ning <classicning@gmail.com>'
 __version_info__ = (0, 9, 11)
 __version__ = ".".join(str(i) for i in __version_info__)
-JIP_VERSION = __version__
 __license__ = 'MIT'
 import logging
 logging.basicConfig(level=logging.INFO, format="\033[1m%(name)s\033[0m %(message)s")
