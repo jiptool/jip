@@ -34,7 +34,7 @@ def is_virtualenv():
 
 setup_args=dict(
         name="jip",
-        version="0.9.11",
+        version="0.9.12",
         author="Sun Ning",
         author_email="classicning@gmail.com",
         url="https://github.com/sunng87/jip",
