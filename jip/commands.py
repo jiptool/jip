@@ -29,7 +29,7 @@ import inspect
 from string import Template
 
 from jip import repos_manager, index_manager, logger,\
-        JIP_VERSION, __path__, pool, cache_manager
+        __version__, __path__, pool, cache_manager
 from jip.maven import Pom, Artifact
 from jip.util import get_lib_path, get_virtual_home
 
@@ -232,7 +232,7 @@ def update(artifact_id):
 @command()
 def version():
     """ Display jip version """
-    logger.info('[Version] jip %s, jython %s' % (JIP_VERSION, sys.version))
+    logger.info('[Version] jip %s, jython %s' % (__version__, sys.version))
 
 @command(options=[
     ("dry-run", 0, "perform a command without actual download", bool)

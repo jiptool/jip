@@ -34,9 +34,9 @@ except ImportError:
     import Queue as queue
 import threading
 
-from jip import JIP_VERSION, logger
+from jip import __version__, logger
 
-JIP_USER_AGENT = 'jip/%s' % JIP_VERSION
+JIP_USER_AGENT = 'jip/%s' % __version__
 BUF_SIZE = 4096
 
 class DownloadException(Exception):
