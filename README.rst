@@ -326,7 +326,8 @@ Change Notes
 
 - Next version - unreleased
 
-  - Remove jip.JIP_VERSION. Use jip.__version__ if you need it.
+  - Fix errors when downloading POMs containing umlauts
+  - Remove jip.JIP_VERSION. Use jip.__version__ if you need it
 
 - 0.9.11 - 2017-03-11
 
