@@ -71,7 +71,6 @@ def download_string(url):
     import requests
     try:
         response = requests.get(url, headers={ 'User-Agent': JIP_USER_AGENT})
-        response.encoding = 'utf-8'
         response.raise_for_status()
         return response.text
     except requests.exceptions.RequestException:

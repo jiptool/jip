@@ -18,9 +18,9 @@ class InstallTests(unittest.TestCase):
         artifacts = _resolve_artifacts([junit])
         self.assertEqual(len(artifacts), 1)
 
-    def testResolve2(self):
-        junit = Artifact('de.l3s.boilerpipe', 'boilerpipe', '1.1.0')
-        artifacts = _resolve_artifacts([junit])
+    def testResolveArtifactWithUmlautsInPom(self):
+        artifact = Artifact('de.l3s.boilerpipe', 'boilerpipe', '1.1.0')
+        artifacts = _resolve_artifacts([artifact])
         self.assertEqual(len(artifacts), 1)
 
     def testExclusion(self):
