@@ -22,6 +22,7 @@
 
 
 import os
+import platform
 import sys
 import re
 from xml.etree import ElementTree
@@ -278,6 +279,27 @@ class Pom(object):
         properties["pom.groupId"] = groupId
         properties["pom.artifactId"] = artifactId
         properties["pom.version"] = version
+        
+        system = platform.system()
+        if system == "Java":
+            release, vendor, vminfo, osinfo = platform.java_ver()
+            system = osinfo[0]
+        
+        ## translation table.
+        maven_os_families = {
+        "Windows 8.1" : "windows",
+        "nt" : "windows"
+        }
+        
+        system = maven_os_families[system]
+        
+        ## pom profiles
+        for profile in eletree.findall("./profiles/profile"):
+            family_rule = profile.find("./activation/os/family")
+            if (family_rule is not None) and (family_rule.text == system):
+                for profile_property in profile.findall("./properties//*"):
+                    properties[profile_property.tag] = profile_property.text
+        
         self.properties = properties
         return properties
 
