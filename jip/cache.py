@@ -42,19 +42,22 @@ class CacheRepository(MavenRepos):
         return os.path.join(self.uri, directory, name)
 
     def get_artifact_dir(self, artifact):
-        directory = os.path.join(self.uri, artifact.group, 
+        directory = os.path.join(self.uri, artifact.group,
                 artifact.artifact)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        return directory            
+        return directory
 
     def download_jar(self, artifact, local_path=None):
         path = self.get_artifact_uri(artifact, 'jar')
         shutil.copy(path, local_path)
-        
-    def download_pom(self, artifact):
+
+    def download_pom(self, artifact, local_path=None):
         path = self.get_artifact_uri(artifact, 'pom')
         if os.path.exists(path):
+            if local_path:
+                shutil.copy(path, local_path)
+
             f = codecs.open(path, mode='r', encoding='utf-8')
             data = f.read()
             f.close()
@@ -80,9 +83,9 @@ class CacheManager(object):
     def set_enable(self, enable):
         self.enable = enable
 
-    def get_artifact_pom(self, artifact):
+    def get_artifact_pom(self, artifact, topath=None):
         if self.enable:
-            return self.cache.download_pom(artifact)
+            return self.cache.download_pom(artifact, topath)
         else:
             return None
 
@@ -118,4 +121,3 @@ class CacheManager(object):
             return pom_in_cache
 
 cache_manager = CacheManager()
-

@@ -45,7 +45,7 @@ def command(register=True, options=[]):
             index_manager.initialize()
             func(*args, **kwargs)
             index_manager.finalize()
-        ## register in command dictionary        
+        ## register in command dictionary
         if register:
             commands[func.__name__.replace('_','-')] = wrapper
             wrapper.__doc__ = inspect.getdoc(func)
@@ -76,7 +76,7 @@ def _find_pom(artifact):
     """ find pom and repos contains pom """
     ## lookup cache first
     if cache_manager.is_artifact_in_cache(artifact):
-        pom = cache_manager.get_artifact_pom(artifact)       
+        pom = cache_manager.get_artifact_pom(artifact)
         return (pom, cache_manager.as_repos())
     else:
         for repos in repos_manager.repos:
@@ -85,7 +85,7 @@ def _find_pom(artifact):
             if pom is not None:
                 cache_manager.put_artifact_pom(artifact, pom)
                 return (pom, repos)
-        return None            
+        return None
 
 def _resolve_artifacts(artifacts, exclusions=[]):
     ## download queue
@@ -131,27 +131,30 @@ def _resolve_artifacts(artifacts, exclusions=[]):
                 d.exclusions.extend(artifact.exclusions)
                 if not index_manager.is_same_installed(d):
                     dependency_set.add(d)
-        
+
     return download_list
 
 def _install(artifacts, exclusions=[], options={}):
     dryrun = options.get("dry-run", False)
     _exclusions = options.get('exclude', [])
+    copy_pom = options.get('copy-pom', False)
     if _exclusions:
         _exclusions = map(lambda x: Artifact(*(x.split(":"))), _exclusions)
         exclusions.extend(_exclusions)
 
     download_list = _resolve_artifacts(artifacts, exclusions)
-    
+
     if not dryrun:
         ## download to cache first
         for artifact in download_list:
             if artifact.repos != cache_manager.as_repos():
-                artifact.repos.download_jar(artifact, 
-                        cache_manager.get_jar_path(artifact))
+                artifact.repos.download_jar(artifact,
+                            cache_manager.get_jar_path(artifact))
         pool.join()
         for artifact in download_list:
             cache_manager.get_artifact_jar(artifact, get_lib_path())
+            if copy_pom:
+                cache_manager.get_artifact_pom(artifact, get_lib_path())
 
         index_manager.commit()
         logger.info("[Finished] dependencies resolved")
@@ -162,6 +165,7 @@ def _install(artifacts, exclusions=[], options={}):
 
 @command(options=[
     ("dry-run", 0, "perform a command without actual download", bool),
+    ("copy-pom", 0, "copy pom to library directory", bool),
     ("exclude", "+", "exclude artifacts in install, for instance, 'junit:junit'", str)
 ])
 def install(artifact_id, options={}):
