@@ -326,6 +326,9 @@ Change Notes
 
 - Next version - unreleased
 - 0.9.13 - 2017-07-23
+
+  - Added option `copy-pom` for `install` command
+
 - 0.9.12 - 2017-03-20
 
   - Fix errors when downloading POMs containing umlauts
