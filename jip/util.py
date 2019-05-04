@@ -42,10 +42,10 @@ BUF_SIZE = 4096
 class DownloadException(Exception):
     pass
 
-def download(url, target, async=False, close_target=False, quiet=True):
+def download(url, target, isAsync=False, close_target=False, quiet=True):
     import requests
     ### download file to target (target is a file-like object)
-    if async:
+    if isAsync:
         pool.submit(url, target)
     else:
         try:
