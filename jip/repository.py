@@ -29,6 +29,7 @@ import os
 import locale
 import shutil
 import stat
+import sys
 import time
 import hashlib
 try:
@@ -287,7 +288,7 @@ class MavenHttpRemoteRepos(MavenRepos):
             hasher = hashlib.sha1()
 
         buf_size = 1024*8
-        file_to_check = file(filepath, 'r')
+        file_to_check = open(filepath, 'r')
         buf = file_to_check.read(buf_size)
         while len(buf) > 0:
             hasher.update(buf)

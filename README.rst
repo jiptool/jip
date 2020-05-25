@@ -325,6 +325,10 @@ Change Notes
 ------------
 
 - Next version - unreleased
+
+  - Added Python 3.7 compatibility
+  - Fail gracefully if unkown repository type
+
 - 0.9.13 - 2017-07-23
 
   - Added option `copy-pom` for `install` command

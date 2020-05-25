@@ -6,3 +6,5 @@ baztian https://github.com/baztian
     patch for Python 3 support
 wikier https://github.com/wikier
     patch for Python 3.4 compatibility and bugfix
+cclauss https://github.com/cclauss
+    patch for Python 3.4+ compatibility and bugfix
