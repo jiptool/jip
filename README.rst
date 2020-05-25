@@ -180,7 +180,7 @@ Here is an example:
     type=local
 
     [repos:central]
-    uri=http://repo1.maven.org/maven2/
+    uri=https://repo1.maven.org/maven2/
     type=remote
 
 Be careful that the ``.jip_config`` file will overwrite default settings,
@@ -328,6 +328,7 @@ Change Notes
 
   - Added Python 3.7 compatibility
   - Fail gracefully if unkown repository type
+  - Maven central [moved to HTTPS](https://blog.sonatype.com/central-repository-moving-to-https)
 
 - 0.9.13 - 2017-07-23
 
