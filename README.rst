@@ -325,6 +325,7 @@ Change Notes
 ------------
 
 - Next version - unreleased
+- 0.9.14 - 2020-05-25
 
   - Added Python 3.7 compatibility
   - Fail gracefully if unkown repository type
