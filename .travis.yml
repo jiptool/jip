@@ -1,5 +1,7 @@
+os: linux
+dist: focal
 language: python
-matrix:
+jobs:
   include:
   - python: '2.6'
     dist: trusty
@@ -10,21 +12,15 @@ matrix:
   - python: '3.5'
   - python: '3.6'
   - python: '3.7'
-    dist: xenial  # required for Python >= 3.7
+  - python: '3.8'
     before_script:
       - pip install flake8
       - flake8 . --count --select=E9,F63,F72,F82 --show-source --statistics
   - python: '2.7'
     dist: trusty
     env: JYTHON=org.python:jython-installer:2.7.2
-  - python: '2.7'
-    dist: xenial
-    env: JYTHON=org.python:jython-installer:2.7.2
-  - python: '2.7'
-    dist: focal
-    env: JYTHON=org.python:jython-installer:2.7.2
 before_install:
-- if [ -n "$JYTHON" ]; then pip install --upgrade pip ; ./ci/before_install_jython.sh; pwd ; ls -FlaR ; source $HOME/myvirtualenv/bin/activate
+- if [ -n "$JYTHON" ]; then ./ci/before_install_jython.sh; source $HOME/myvirtualenv/bin/activate
   ;fi
 install:
 - if [[ $TRAVIS_PYTHON_VERSION == "2.6" ]]; then pip install unittest2; fi
@@ -33,7 +29,7 @@ script:
 - python test/testsuite.py
 deploy:
   provider: pypi
-  user: sunng
+  username: sunng
   password:
     secure: AiBcPz4FVeUQeGw1zJKmQVECzlxgnjKeHQXU5re6AEuedV3WkG5PrDSmzPQDcrswMw9OmuEzvJGSHi4xTD0oqS2MfAUg7phgEq14h7s4Hb2LM2vac+l6tm0JfyzZVUWqP1XeBcVpGwcONYvaxSNTVrIFGjKBK4tjkYR1Bz5RTTo=
   on:
