@@ -1,3 +1,5 @@
+os: linux
+dist: focal
 language: python
 jobs:
   include:
@@ -26,7 +28,7 @@ script:
 - python test/testsuite.py
 deploy:
   provider: pypi
-  user: sunng
+  username: sunng
   password:
     secure: AiBcPz4FVeUQeGw1zJKmQVECzlxgnjKeHQXU5re6AEuedV3WkG5PrDSmzPQDcrswMw9OmuEzvJGSHi4xTD0oqS2MfAUg7phgEq14h7s4Hb2LM2vac+l6tm0JfyzZVUWqP1XeBcVpGwcONYvaxSNTVrIFGjKBK4tjkYR1Bz5RTTo=
   on:
