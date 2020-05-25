@@ -17,7 +17,8 @@ jobs:
       - pip install flake8
       - flake8 . --count --select=E9,F63,F72,F82 --show-source --statistics
   - python: '2.7'
-    env: JYTHON=org.python:jython-installer:2.7.0
+    dist: trusty
+    env: JYTHON=org.python:jython-installer:2.7.2
 before_install:
 - if [ -n "$JYTHON" ]; then ./ci/before_install_jython.sh; source $HOME/myvirtualenv/bin/activate
   ;fi
