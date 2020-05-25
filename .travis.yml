@@ -1,7 +1,10 @@
+os: linux
+dist: focal
 language: python
-matrix:
+jobs:
   include:
   - python: '2.6'
+    dist: trusty
   - python: '2.7'
     before_script:
       - pip install flake8
@@ -9,7 +12,7 @@ matrix:
   - python: '3.5'
   - python: '3.6'
   - python: '3.7'
-    dist: xenial  # required for Python >= 3.7
+  - python: '3.8'
     before_script:
       - pip install flake8
       - flake8 . --count --select=E9,F63,F72,F82 --show-source --statistics
@@ -25,7 +28,7 @@ script:
 - python test/testsuite.py
 deploy:
   provider: pypi
-  user: sunng
+  username: sunng
   password:
     secure: AiBcPz4FVeUQeGw1zJKmQVECzlxgnjKeHQXU5re6AEuedV3WkG5PrDSmzPQDcrswMw9OmuEzvJGSHi4xTD0oqS2MfAUg7phgEq14h7s4Hb2LM2vac+l6tm0JfyzZVUWqP1XeBcVpGwcONYvaxSNTVrIFGjKBK4tjkYR1Bz5RTTo=
   on:
