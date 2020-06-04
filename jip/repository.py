@@ -24,6 +24,7 @@ try:
     from configparser import ConfigParser
 except ImportError:
     from ConfigParser import ConfigParser
+import codecs
 from string import Template
 import os
 import locale
@@ -168,7 +169,7 @@ class MavenFileSystemRepos(MavenRepos):
         maven_file_path = self.get_artifact_uri(artifact, 'pom')
         logger.info('[Checking] pom file %s'% maven_file_path)
         if os.path.exists(maven_file_path):
-            pom_file = open(maven_file_path, 'r')
+            pom_file = codecs.open(maven_file_path, mode='r', encoding='utf-8')
             data =  pom_file.read()
             pom_file.close()
             return data
