@@ -32,7 +32,7 @@ class RespositoryTests(unittest.TestCase):
         with tmpdir() as temp_repo_dir:
             artifact_dir = "%s/dummygroup/dummyartifact/1.0.0/" % temp_repo_dir
             mkdir_p(artifact_dir)
-            with open("%sdummyartifact-1.0.0.pom" % artifact_dir, "wb") as f:
+            with open("%sdummyartifact-1.0.0.pom" % artifact_dir, "w") as f:
                 f.write("\xe2")
             testee = MavenFileSystemRepos('dummy_name', temp_repo_dir)
             artifact = Artifact('dummygroup', 'dummyartifact', '1.0.0')
