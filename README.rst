@@ -325,6 +325,9 @@ Change Notes
 ------------
 
 - Next version - unreleased
+
+  - Fix encoding errors of download from local repositories
+
 - 0.9.14 - 2020-05-25
 
   - Added Python 3.7 compatibility

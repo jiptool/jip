@@ -12,7 +12,7 @@ class InstallTests(unittest.TestCase):
     def testArtifact(self):
         commons_lang = Artifact('commons-lang', 'commons-lang', '2.6')
         self.assertEqual(str(commons_lang), 'commons-lang:commons-lang:2.6')
-        
+
     def testResolve(self):
         junit = Artifact('junit', 'junit', '3.8.1')
         artifacts = _resolve_artifacts([junit])
