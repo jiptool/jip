@@ -333,7 +333,7 @@ Change Notes
 
   - Added Python 3.7 compatibility
   - Fail gracefully if unkown repository type
-  - Maven central [moved to HTTPS](https://blog.sonatype.com/central-repository-moving-to-https)
+  - Maven central `moved to HTTPS <https://blog.sonatype.com/central-repository-moving-to-https>`_
 
 - 0.9.13 - 2017-07-23
 
