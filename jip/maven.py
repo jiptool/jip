@@ -110,6 +110,9 @@ class Pom(object):
             ## we use this dirty method to remove namesapce attribute so that elementtree will use default empty namespace
             pom_string = re.sub(r"<project(.|\s)*?>", '<project>', self.pom_string, 1)
             parser = ElementTree.XMLParser(target=WhitespaceNormalizer())
+            # Remove BOM, or a Byte Order Mark.  http://en.wikipedia.org/wiki/Byte_order_mark
+            if pom_string.startswith("ï»¿"):
+                pom_string = pom_string.replace("ï»¿", "")
             parser.feed(pom_string.encode('utf-8'))
             self.eletree = parser.close()
         return self.eletree
