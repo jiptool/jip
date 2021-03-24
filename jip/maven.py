@@ -19,8 +19,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-
-
+import codecs
 import os
 import sys
 import re
@@ -111,7 +110,7 @@ class Pom(object):
             pom_string = re.sub(r"<project(.|\s)*?>", '<project>', self.pom_string, 1)
             parser = ElementTree.XMLParser(target=WhitespaceNormalizer())
             # Remove BOM, or a Byte Order Mark.  http://en.wikipedia.org/wiki/Byte_order_mark
-            if pom_string.startswith("ï»¿"):
+            if pom_string.startswith(codecs.BOM_UTF8):
                 pom_string = pom_string.replace("ï»¿", "")
             parser.feed(pom_string.encode('utf-8'))
             self.eletree = parser.close()
