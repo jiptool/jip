@@ -1,4 +1,5 @@
 #! /usr/bin/env jython
+# -
 # Copyright (C) 2011 Sun Ning<classicning@gmail.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -110,8 +111,8 @@ class Pom(object):
             pom_string = re.sub(r"<project(.|\s)*?>", '<project>', self.pom_string, 1)
             parser = ElementTree.XMLParser(target=WhitespaceNormalizer())
             # Remove BOM, or a Byte Order Mark.  http://en.wikipedia.org/wiki/Byte_order_mark
-            if pom_string.startswith("ï»¿"):
-                pom_string = pom_string.replace("ï»¿", "")
+            first_tag_position = pom_string.encode().decode('utf-8').find('<')
+            pom_string = pom_string[first_tag_position:]
             parser.feed(pom_string.encode('utf-8'))
             self.eletree = parser.close()
         return self.eletree
