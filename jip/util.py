@@ -42,15 +42,16 @@ BUF_SIZE = 4096
 class DownloadException(Exception):
     pass
 
-def download(url, target, non_blocking=False, close_target=False, quiet=True):
+
+def download(url, target, non_blocking=False, close_target=False, quiet=True, verify=True):
     import requests
     ### download file to target (target is a file-like object)
     if non_blocking:
-        pool.submit(url, target)
+        pool.submit(url, target, verify)
     else:
         try:
             t0 = time.time()
-            source = requests.get(url, headers={ 'User-Agent': JIP_USER_AGENT})
+            source = requests.get(url, verify=verify, headers={'User-Agent': JIP_USER_AGENT})
             source.raise_for_status()
             size = source.headers['Content-Length']
             if not quiet:
@@ -67,10 +68,11 @@ def download(url, target, non_blocking=False, close_target=False, quiet=True):
             _, e, _ = sys.exc_info()
             raise DownloadException(url, e)
 
-def download_string(url):
+
+def download_string(url, verify=True):
     import requests
     try:
-        response = requests.get(url, headers={ 'User-Agent': JIP_USER_AGENT})
+        response = requests.get(url, verify=verify, headers={'User-Agent': JIP_USER_AGENT})
         response.raise_for_status()
         return response.text
     except requests.exceptions.RequestException:
@@ -91,17 +93,17 @@ class DownloadThreadPool(object):
 
     def _do_work(self):
         while True:
-            url, target = self.queue.get()
-            download(url, target, close_target=True, quiet=False)
+            url, target, verify = self.queue.get()
+            download(url, target, close_target=True, quiet=False, verify=verify)
             self.queue.task_done()
 
     def join(self):
         self.queue.join()
 
-    def submit(self, url, target):
+    def submit(self, url, target, verify=True):
         if not self.initialized:
             self.init_threads()
-        self.queue.put((url, target))
+        self.queue.put((url, target, verify))
 
 pool = DownloadThreadPool(3)
 

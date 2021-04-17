@@ -191,16 +191,16 @@ class MavenHttpRemoteRepos(MavenRepos):
         self.pom_cache = {}
         self.pom_not_found_cache = []
 
-    def download_jar(self, artifact, local_path):
+    def download_jar(self, artifact, local_path, verify=True):
         maven_path = self.get_artifact_uri(artifact, 'jar')
         logger.info('[Downloading] jar from %s' % maven_path)
         local_jip_path = os.path.join(local_path, artifact.to_jip_name())
         local_f = open(local_jip_path, 'wb')
         ## download jar asyncly
-        download(maven_path, local_f, True)
+        download(maven_path, local_f, True, verify=verify)
         ##logger.info('[Finished] %s downloaded ' % maven_path)
 
-    def download_pom(self, artifact):
+    def download_pom(self, artifact, verify=True):
         if artifact in self.pom_not_found_cache:
             return None
 
@@ -217,7 +217,7 @@ class MavenHttpRemoteRepos(MavenRepos):
         maven_path = self.get_artifact_uri(artifact, 'pom')
         try:
             logger.info('[Checking] pom file %s'% maven_path)
-            data = download_string(maven_path)
+            data = download_string(maven_path, verify)
             ## cache
             self.pom_cache[artifact] = data
 

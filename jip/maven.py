@@ -114,7 +114,7 @@ class Pom(object):
             self.eletree = parser.close()
         return self.eletree
 
-    def get_parent_pom(self):
+    def get_parent_pom(self, verify=True):
         if self.parent is not None:
             return self.parent
 
@@ -130,7 +130,7 @@ class Pom(object):
                 parent_pom = cache_manager.get_artifact_pom(artifact)
             else:
                 for repos in repos_manager.repos:
-                    parent_pom = repos.download_pom(artifact)
+                    parent_pom = repos.download_pom(artifact, verify)
                     if parent_pom is not None:
                         cache_manager.put_artifact_pom(artifact, parent_pom)
                         break
@@ -144,13 +144,13 @@ class Pom(object):
         else:
             return None
 
-    def get_dependency_management(self):
+    def get_dependency_management(self, verify=True):
         if self.dep_mgmt is not None:
             return self.dep_mgmt
 
         dependency_management_version_dict = {}
 
-        parent = self.get_parent_pom()
+        parent = self.get_parent_pom(verify)
         if parent is not None:
             dependency_management_version_dict.update(parent.get_dependency_management())
 
@@ -193,8 +193,8 @@ class Pom(object):
         self.dep_mgmt = dependency_management_version_dict
         return dependency_management_version_dict
 
-    def get_dependencies(self):
-        dep_mgmt = self.get_dependency_management()
+    def get_dependencies(self, verify=True):
+        dep_mgmt = self.get_dependency_management(verify)
         props = self.get_properties()
         eletree = self.get_element_tree()
 
