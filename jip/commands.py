@@ -72,7 +72,8 @@ def command(register=True, options=[]):
         return wrapper
     return _command
 
-def _find_pom(artifact):
+
+def _find_pom(artifact, verify=True):
     """ find pom and repos contains pom """
     ## lookup cache first
     if cache_manager.is_artifact_in_cache(artifact):
@@ -80,14 +81,28 @@ def _find_pom(artifact):
         return (pom, cache_manager.as_repos())
     else:
         for repos in repos_manager.repos:
-            pom = repos.download_pom(artifact)
+            pom = repos.download_pom(artifact, verify)
             ## find the artifact
             if pom is not None:
                 cache_manager.put_artifact_pom(artifact, pom)
                 return (pom, repos)
         return None
 
-def _resolve_artifacts(artifacts, exclusions=[]):
+
+@command(options=[
+    ("dry-run", 0, "perform a command without actual download", bool),
+    ("copy-pom", 0, "copy pom to library directory", bool),
+    ("exclude", "+", "exclude artifacts in install, for instance, 'junit:junit'", str),
+    ("insecure", 0, "do not verify the server's TLS certificate", bool)
+])
+def install(artifact_id, options={}):
+    """ Install a package identified by "groupId:artifactId:version" """
+    artifact = Artifact.from_id(artifact_id)
+
+    _install([artifact], options=options)
+
+
+def _resolve_artifacts(artifacts, exclusions=[], verify=True):
     ## download queue
     download_list = []
 
@@ -106,7 +121,7 @@ def _resolve_artifacts(artifacts, exclusions=[]):
                 and artifact not in download_list:
             continue
 
-        pominfo = _find_pom(artifact)
+        pominfo = _find_pom(artifact, verify)
         if pominfo is None:
             logger.error("[Error] Artifact not found: %s", artifact)
             sys.exit(1)
@@ -126,7 +141,7 @@ def _resolve_artifacts(artifacts, exclusions=[]):
             for r in pom_obj.get_repositories():
                 repos_manager.add_repos(*r)
 
-            more_dependencies = pom_obj.get_dependencies()
+            more_dependencies = pom_obj.get_dependencies(verify)
             for d in more_dependencies:
                 d.exclusions.extend(artifact.exclusions)
                 if not index_manager.is_same_installed(d):
@@ -134,22 +149,24 @@ def _resolve_artifacts(artifacts, exclusions=[]):
 
     return download_list
 
+
 def _install(artifacts, exclusions=[], options={}):
     dryrun = options.get("dry-run", False)
+    verify = not options.get("insecure", True)
     _exclusions = options.get('exclude', [])
     copy_pom = options.get('copy-pom', False)
     if _exclusions:
         _exclusions = map(lambda x: Artifact(*(x.split(":"))), _exclusions)
         exclusions.extend(_exclusions)
 
-    download_list = _resolve_artifacts(artifacts, exclusions)
+    download_list = _resolve_artifacts(artifacts, exclusions, verify)
 
     if not dryrun:
         ## download to cache first
         for artifact in download_list:
             if artifact.repos != cache_manager.as_repos():
                 artifact.repos.download_jar(artifact,
-                            cache_manager.get_jar_path(artifact))
+                            cache_manager.get_jar_path(artifact), verify)
         pool.join()
         for artifact in download_list:
             cache_manager.get_artifact_jar(artifact, get_lib_path())
@@ -162,17 +179,6 @@ def _install(artifacts, exclusions=[], options={}):
         logger.info("[Install] Artifacts to install:")
         for artifact in download_list:
             logger.info(artifact)
-
-@command(options=[
-    ("dry-run", 0, "perform a command without actual download", bool),
-    ("copy-pom", 0, "copy pom to library directory", bool),
-    ("exclude", "+", "exclude artifacts in install, for instance, 'junit:junit'", str)
-])
-def install(artifact_id, options={}):
-    """ Install a package identified by "groupId:artifactId:version" """
-    artifact = Artifact.from_id(artifact_id)
-
-    _install([artifact], options=options)
 
 @command()
 def clean():
