@@ -21,6 +21,7 @@
 #
 
 import os
+import platform
 import sys
 import argparse
 
@@ -29,7 +30,8 @@ from jip.commands import commands
 
 
 def main():
-    os.system("color")
+    if platform.system() == "Windows" and os.getenv("COMSPEC").find("cmd.exe") >= 0:
+        os.system("color")
     logger.debug("sys args %s" % sys.argv)
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command")
