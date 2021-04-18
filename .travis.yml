@@ -3,8 +3,6 @@ dist: focal
 language: python
 jobs:
   include:
-  - python: '2.6'
-    dist: trusty
   - python: '2.7'
     before_script:
       - pip install flake8
@@ -23,7 +21,6 @@ before_install:
 - if [ -n "$JYTHON" ]; then ./ci/before_install_jython.sh; source $HOME/myvirtualenv/bin/activate
   ;fi
 install:
-- if [[ $TRAVIS_PYTHON_VERSION == "2.6" ]]; then pip install unittest2; fi
 - pip install -e .
 script:
 - python test/testsuite.py
