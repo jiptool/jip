@@ -132,7 +132,7 @@ class MavenRepos(object):
         """ download or copy file to local path, raise exception when failed """
         pass
 
-    def download_pom(self, artifact):
+    def download_pom(self, artifact, verify=True):
         """ return a content string """
         pass
 
@@ -165,12 +165,12 @@ class MavenFileSystemRepos(MavenRepos):
             logger.error("[Error] File not found %s" % maven_file_path)
             raise IOError('File not found:' + maven_file_path)
 
-    def download_pom(self, artifact):
+    def download_pom(self, artifact, verify=True):
         maven_file_path = self.get_artifact_uri(artifact, 'pom')
         logger.info('[Checking] pom file %s'% maven_file_path)
         if os.path.exists(maven_file_path):
             pom_file = codecs.open(maven_file_path, mode='r', encoding='utf-8')
-            data =  pom_file.read()
+            data = pom_file.read()
             pom_file.close()
             return data
         else:
