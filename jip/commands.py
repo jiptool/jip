@@ -26,6 +26,7 @@ import sys
 import shutil
 import stat
 import inspect
+import warnings
 from string import Template
 
 from jip import repos_manager, index_manager, logger,\
@@ -153,6 +154,8 @@ def _resolve_artifacts(artifacts, exclusions=[], verify=True):
 def _install(artifacts, exclusions=[], options={}):
     dryrun = options.get("dry-run", False)
     verify = not options.get("insecure", True)
+    if not verify:
+        warnings.filterwarnings("ignore", category=Warning)
     _exclusions = options.get('exclude', [])
     copy_pom = options.get('copy-pom', False)
     if _exclusions:
