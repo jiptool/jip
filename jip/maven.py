@@ -246,7 +246,7 @@ class Pom(object):
         properties = {}
         properties_ele = eletree.find("properties")
         if properties_ele is not None:
-            prop_eles = properties_ele.getchildren()
+            prop_eles = list(properties_ele)
             for prop_ele in prop_eles:
                 if prop_ele.tag == 'property':
                     name = prop_ele.get("name")
