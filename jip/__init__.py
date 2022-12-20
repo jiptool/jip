@@ -21,7 +21,7 @@
 #
 
 __author__ = 'Sun Ning <classicning@gmail.com>'
-__version_info__ = (0, 9, 15)
+__version_info__ = (0, 9, 16)
 __version__ = ".".join(str(i) for i in __version_info__)
 __license__ = 'MIT'
 import logging
