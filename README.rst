@@ -326,6 +326,9 @@ Change Notes
 
 - Next version - unreleased
 - 0.9.16 - 2022-12-20
+
+  - Fix deprecated api removal
+
 - 0.9.15 - 2020-06-04
 
   - Fix encoding errors of download from local repositories
